@@ -51,6 +51,7 @@ jobs:
         id: setup-python
         with:
           python-version: ${{ matrix.py }}
+          allow-prereleases: true
           cache: "pip"
           cache-dependency-path: |
             .github/workflows/build.yaml
