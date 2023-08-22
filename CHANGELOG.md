@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.3
+
 - Support invocation using `python -m`
 
 ## 0.0.2

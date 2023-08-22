@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mddj"
-version = "0.0.2"
+version = "0.0.3"
 description = 'A CLI for extracting python metadata from packages'
 readme = "README.md"
 requires-python = ">=3.8"
@@ -32,6 +32,7 @@ dependencies = [
 
 [project.urls]
 source = "https://github.com/sirosen/mddj"
+changelog = "https://github.com/sirosen/mddj/blob/main/CHANGELOG.md"
 
 [project.scripts]
 mddj = "mddj.cli:main"
