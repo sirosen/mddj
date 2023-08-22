@@ -42,4 +42,4 @@ See `--help` for details.
 
 ## License
 
-`flake8-typing-as-t` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`mddj` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.

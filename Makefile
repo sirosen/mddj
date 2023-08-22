@@ -1,8 +1,6 @@
-.PHONY: build
-build:
-	hatch build
+MDDJ_VERSION=$(shell grep '^version = ' pyproject.toml | cut -d '"' -f2)
 
-.PHONY: publish-from-pypirc
-publish-from-pypirc: build
-	@echo "making some assumptions about your ~/.pypirc..."
-	hatch publish -u '__token__' -a "$$(cat ~/.pypirc| grep '^password' | head -n1 | cut -d'=' -f2 | tr -d ' ')"
+.PHONY: release
+release:
+	git tag -s "$(MDDJ_VERSION)" -m "v$(MDDJ_VERSION)"
+	-git push $(shell git rev-parse --abbrev-ref @{push} | cut -d '/' -f1) refs/tags/$(MDDJ_VERSION)
