@@ -1,7 +1,7 @@
 import click
 
 from mddj.builder import ephemeral_sdist
-from mddj.readers import read_from_sdist
+from mddj.readers import TarballSourceDistribution
 
 
 @click.command("requires-python")
@@ -21,7 +21,10 @@ def read_requires_python(*, lower_bound: bool, no_build_capture: bool) -> None:
     Read the 'Requires-Python' data.
     """
     with ephemeral_sdist(capture_build_output=not no_build_capture) as sdist_path:
-        requires_python = read_from_sdist(sdist_path, "Requires-Python")
+        dist = TarballSourceDistribution(sdist_path)
+        requires_python = dist.metadata.get("Requires-Python")
+        if requires_python is None:
+            raise RuntimeError("No Requires-Python data found")
 
     if lower_bound:
         click.echo(find_lower_bound(requires_python))
