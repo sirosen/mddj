@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a command to read `Version`: `mddj read version`
+
 ## 0.0.3
 
 - Support invocation using `python -m`

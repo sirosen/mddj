@@ -1,22 +1,10 @@
 import click
 
-from .builder import ephemeral_sdist
-from .readers import read_from_sdist
+from mddj.builder import ephemeral_sdist
+from mddj.readers import read_from_sdist
 
 
-@click.group("mddj")
-@click.help_option("-h", "--help")
-def main() -> None:
-    """MetaData DJ"""
-
-
-@main.group("read")
-@click.help_option("-h", "--help")
-def read() -> None:
-    """Read metadata from the current project."""
-
-
-@read.command("requires-python")
+@click.command("requires-python")
 @click.help_option("-h", "--help")
 @click.option(
     "--lower-bound",
