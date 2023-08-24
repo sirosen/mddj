@@ -28,17 +28,27 @@ pipx install mddj
 
 ## Usage
 
-### `mddj read`
+### Env Vars
 
-Read metadata from your package by building it to an sdist and then inspecting
-that `sdist`.
+#### Build Isolation
+
+``MDDJ_ISOLATED_BUILDS=0`` can be set to disable the (default) behavior using
+isolated build environments when getting package metadata.
+
+This requires that you have installed all of the build-system requirements in
+to the current environment, but will be much faster.
+
+### Commands
+
+See `--help` on each command for more detail on supported options.
 
 #### `mddj read requires-python`
 
-Show the `Requires-Python` data. Supports specialized options for parsing data
-like `--lower-bound`.
+Show the `requires_python` field.
 
-See `--help` for details.
+#### `mddj read version`
+
+Show the `version`.
 
 ## License
 

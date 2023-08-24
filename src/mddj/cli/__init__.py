@@ -1,11 +1,12 @@
 import click
 
 from .read import read
+from .state import CommandState, common_args
 
 
 @click.group("mddj")
-@click.help_option("-h", "--help")
-def main() -> None:
+@common_args
+def main(*, state: CommandState) -> None:
     """MetaData DJ"""
 
 

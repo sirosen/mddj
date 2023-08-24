@@ -1,30 +1,24 @@
 import click
 
-from mddj.builder import ephemeral_sdist
-from mddj.readers import TarballSourceDistribution
+from mddj.cli.state import CommandState, common_args
 
 
 @click.command("requires-python")
-@click.help_option("-h", "--help")
 @click.option(
     "--lower-bound",
     is_flag=True,
     help="Show a lower bound rather than the full Requires-Python data.",
 )
-@click.option(
-    "--no-build-capture",
-    is_flag=True,
-    help="Disable capturing of the internal package build output and errors.",
-)
-def read_requires_python(*, lower_bound: bool, no_build_capture: bool) -> None:
+@common_args
+def read_requires_python(*, state: CommandState, lower_bound: bool) -> None:
     """
     Read the 'Requires-Python' data.
     """
-    with ephemeral_sdist(capture_build_output=not no_build_capture) as sdist_path:
-        dist = TarballSourceDistribution(sdist_path)
-        requires_python = dist.metadata.get("Requires-Python")
-        if requires_python is None:
-            raise RuntimeError("No Requires-Python data found")
+    data = state.read_metadata()
+    requires_python = data.get("requires_python")
+
+    if requires_python is None:
+        raise RuntimeError("No Requires-Python data found")
 
     if lower_bound:
         click.echo(find_lower_bound(requires_python))

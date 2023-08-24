@@ -1,12 +1,14 @@
 import click
 
+from mddj.cli.state import CommandState, common_args
+
 from .requires_python import read_requires_python
 from .version import read_version
 
 
 @click.group("read")
-@click.help_option("-h", "--help")
-def read() -> None:
+@common_args
+def read(*, state: CommandState) -> None:
     """Read metadata from the current project."""
 
 

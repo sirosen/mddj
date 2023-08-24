@@ -1,22 +1,25 @@
-import contextlib
 import pathlib
-import tarfile
 
-from importlib_metadata import Distribution
+import build.util
 
 
-class TarballSourceDistribution(Distribution):
-    def __init__(self, path: pathlib.Path):
-        self.path = path
-        self.dist_name = path.name.rsplit(".", 2)[0]
+def get_wheel_metadata(
+    source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
+) -> dict[str, str]:
+    """
+    'quiet' is currently a no-op.
 
-    def read_text(self, filename: str) -> str | None:
-        with tarfile.open(self.path, "r:gz") as tf:
-            with contextlib.suppress(KeyError):
-                fp = tf.extractfile(f"{self.dist_name}/{filename}")
-                if fp is None:
-                    return None
-                return fp.read().decode()
+    After the next release of build, change usage to this:
 
-    def locate_path(self, path: str) -> pathlib.Path:
-        return pathlib.PurePosixPath(path)
+        import pyproject_hooks
+
+        ...
+
+        runner = pyproject_hooks.quiet_subprocess_runner
+        if not quiet:
+            runner = pyproject_hooks.default_subprocess_runner
+        return build.util.project_wheel_metadata(
+            source_dir, isolated=isolated, runner=runner
+        ).json
+    """
+    return build.util.project_wheel_metadata(source_dir, isolated=isolated).json
