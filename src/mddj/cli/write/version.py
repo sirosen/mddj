@@ -1,6 +1,7 @@
 import click
 
 from mddj.cli.state import CommandState, common_args
+from mddj.config import WriteVersionAssignConfig
 from mddj.writers import write_simple_assignment
 
 
@@ -10,25 +11,25 @@ from mddj.writers import write_simple_assignment
 def write_version(*, new_version: str, state: CommandState) -> None:
     """Write the 'version' of the current project, based on config."""
     config = state.read_config()
-    if config.write_version_mode == "assign":
-        maybe_result = write_simple_assignment(
-            config.version_path,
-            config.write_version_value,
-            new_version,
+    version_config = config.write_version_config
+    if isinstance(version_config, WriteVersionAssignConfig):
+        result = write_simple_assignment(
+            version_config.path, version_config.key, new_version
         )
     else:
         raise NotImplementedError(
-            f"Unrecognized write_version_mode: {config.write_version_mode}"
+            f"Unrecognized write_version_config. write_version={config.write_version}"
         )
 
-    if maybe_result is None:
+    if result is None:
         click.echo("No version was found, so no update was written.")
+        click.get_current_context().exit(1)
     else:
         click.echo(
             f"""\
-Version was updated. write_version={config.write_version}
+Version was updated. write_version='{config.write_version}'
 
-old value: {maybe_result}
+old value: {result}
 new value: {new_version}
 """
         )

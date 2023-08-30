@@ -50,6 +50,40 @@ Show the `requires_python` field.
 
 Show the `version`.
 
+#### `mddj write version`
+
+Write a new version to a target file, defaulting to a `version = ...` assignment
+in `pyproject.toml`.
+
+Supports configuration via `pyproject.toml`.
+
+### Config
+
+Configuration for `mddj` can only be read from a `tool.mddj` table in
+`pyproject.toml`. No other configuration sources are supported.
+
+#### `write_version`
+
+This setting controls how version information is written for
+`mddj write version`.
+
+It takes a colon delimited string with two or three values.
+Either `{mode}:{path}:{key}` or `{mode}:{key}`.
+
+The only supported `{mode}` is `"assign"` (for now).
+`{path}` defaults to `pyproject.toml` if omitted.
+`{key}` is the name of the attribute used to assign a value.
+
+This defaults to `assign: version`.
+
+For example, the following config can be used to target a `__version__`
+attribute in an `__init__.py` file in a src-layout project:
+
+```toml
+[tool.mddj]
+write_version = "assign: src/foopkg/__init__.py: __version__"
+```
+
 ## License
 
 `mddj` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.

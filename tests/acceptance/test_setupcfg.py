@@ -31,7 +31,7 @@ def test_update_version_assignment(tmpdir, run_line, quote_char):
     pyproject.write(
         """\
 [tool.mddj]
-version_path = "setup.cfg"
+write_version = "assign:setup.cfg:version"
 """
     )
 

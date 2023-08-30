@@ -6,6 +6,10 @@
 - Convert implicit build usage and metadata extraction to use `build.util`
 - Support disabling isolated builds via `MDDJ_BUILD_ISOLATION=0` env var
 - Add `wheel` as a dependency, and remove `importlib_metadata`
+- Add `tomli` as a dependency on pythons below Python 3.11
+- Add a command for writing version updates, `mddj write version`
+- Config is now supported in the `tool.mddj` table of `pyproject.toml`. Only
+  one config value is supported, `write_version`
 
 ## 0.0.3
 
