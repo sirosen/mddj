@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.4
+
 - Add a command to read `version`: `mddj read version`
 - Convert implicit build usage and metadata extraction to use `build.util`
 - Support disabling isolated builds via `MDDJ_BUILD_ISOLATION=0` env var
