@@ -4,7 +4,9 @@ import pathlib
 import re
 
 
-def write_simple_assignment(path: str | pathlib.Path, key: str, value: str):
+def write_simple_assignment(
+    path: str | pathlib.Path, key: str, value: str
+) -> str | None:
     if isinstance(path, str):
         path = pathlib.Path(path)
 
@@ -12,6 +14,7 @@ def write_simple_assignment(path: str | pathlib.Path, key: str, value: str):
     with path.open("r") as fp:
         content = fp.readlines()
 
+    old_value = None
     with path.open("w") as fp:
         for line in content:
             if m := line_pattern.match(line):
@@ -26,3 +29,8 @@ def write_simple_assignment(path: str | pathlib.Path, key: str, value: str):
                 fp.write(f"{key} = {new_value}\n")
             else:
                 fp.write(line)
+
+    if old_value is None:
+        return None
+    else:
+        return old_value.strip("'\"")

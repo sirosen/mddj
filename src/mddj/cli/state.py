@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import pathlib
@@ -5,7 +7,7 @@ import typing as t
 
 import click
 
-from mddj.config import read_config
+from mddj.config import ConfigData, read_config
 from mddj.readers import get_wheel_metadata
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
@@ -30,18 +32,18 @@ class CommandState:
             return not (var.lower() in ("0", "false"))
         return True
 
-    def read_metadata(self) -> dict[str, str]:
+    def read_metadata(self) -> dict[str, str | list[str]]:
         return get_wheel_metadata(
             self.source_dir, isolated=self.isolated_builds, quiet=self.build_capture
         )
 
-    def read_config(self) -> dict[str, str]:
+    def read_config(self) -> ConfigData:
         return read_config(self.source_dir / "pyproject.toml")
 
 
 def common_args(cmd: F) -> F:
     @functools.wraps(cmd)
-    def wrapper(*args, **kwargs) -> t.Any:
+    def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         state = click.get_current_context().ensure_object(CommandState)
         return cmd(*args, state=state, **kwargs)
 

@@ -30,6 +30,7 @@ dependencies = [
   "wheel",
   "build>=0.10.0",
   "click",
+  'importlib_metadata;python_version<"3.11"',
   'tomli;python_version<"3.11"',
 ]
 

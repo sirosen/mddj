@@ -17,7 +17,7 @@ def read_requires_python(*, state: CommandState, lower_bound: bool) -> None:
     data = state.read_metadata()
     requires_python = data.get("requires_python")
 
-    if requires_python is None:
+    if requires_python is None or not isinstance(requires_python, str):
         raise RuntimeError("No Requires-Python data found")
 
     if lower_bound:

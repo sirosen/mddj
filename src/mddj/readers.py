@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pathlib
 
 import build.util
@@ -5,7 +7,7 @@ import build.util
 
 def get_wheel_metadata(
     source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
-) -> dict[str, str]:
+) -> dict[str, str | list[str]]:
     """
     'quiet' is currently a no-op.
 
