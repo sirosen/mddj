@@ -7,6 +7,7 @@ import typing as t
 
 import click
 
+from mddj._compat import metadata
 from mddj.config import ConfigData, read_config
 from mddj.readers import get_wheel_metadata
 
@@ -32,7 +33,7 @@ class CommandState:
             return not (var.lower() in ("0", "false"))
         return True
 
-    def read_metadata(self) -> dict[str, str | list[str]]:
+    def read_metadata(self) -> metadata.PackageMetadata:
         return get_wheel_metadata(
             self.source_dir, isolated=self.isolated_builds, quiet=self.build_capture
         )

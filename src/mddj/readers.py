@@ -4,10 +4,12 @@ import pathlib
 
 import build.util
 
+from mddj._compat import metadata
+
 
 def get_wheel_metadata(
     source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
-) -> dict[str, str | list[str]]:
+) -> metadata.PackageMetadata:
     """
     'quiet' is currently a no-op.
 
@@ -24,4 +26,4 @@ def get_wheel_metadata(
             source_dir, isolated=isolated, runner=runner
         ).json
     """
-    return build.util.project_wheel_metadata(source_dir, isolated=isolated).json
+    return build.util.project_wheel_metadata(source_dir, isolated=isolated)
