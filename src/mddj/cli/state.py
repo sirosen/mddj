@@ -1,9 +1,11 @@
 import functools
 import os
+import pathlib
 import typing as t
 
 import click
 
+from mddj.config import read_config
 from mddj.readers import get_wheel_metadata
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
@@ -11,7 +13,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 class CommandState:
     def __init__(self) -> None:
-        self.source_dir = os.getcwd()
+        self.source_dir = pathlib.Path.cwd()
 
     @functools.cached_property
     def isolated_builds(self) -> bool:
@@ -32,6 +34,9 @@ class CommandState:
         return get_wheel_metadata(
             self.source_dir, isolated=self.isolated_builds, quiet=self.build_capture
         )
+
+    def read_config(self) -> dict[str, str]:
+        return read_config(self.source_dir / "pyproject.toml")
 
 
 def common_args(cmd: F) -> F:
