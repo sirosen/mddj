@@ -43,6 +43,8 @@ def get_tox_tested_versions() -> list[str]:
     Then use that listing to get a list of python versions.
     """
     tox = shutil.which("tox")
+    if not tox:
+        raise ToxReaderError("Cannot fetch tox data. A 'tox' command was not found.")
     _check_tox_version(tox)
 
     output = subprocess.check_output([tox, "--listenvs"], text=True)
@@ -55,13 +57,11 @@ def get_tox_tested_versions() -> list[str]:
     return versions
 
 
-def _check_tox_version(tox_command: str | None) -> t.Literal[3, 4]:
+def _check_tox_version(tox_command: str) -> t.Literal[3, 4]:
     """
     Check that the 'tox' command is a supported version.
     Any unexpected outputs will raise an error, which allows for a cleaner early abort.
     """
-    if not tox_command:
-        raise ToxReaderError("Cannot fetch tox data. A 'tox' command was not found.")
     tox_version_proc = subprocess.run(
         [tox_command, "--version"], text=True, capture_output=True
     )
