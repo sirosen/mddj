@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Initial commands in support of reading `tox.ini` data (via subprocess
+  invocation of `tox`): `mddj read tox min-version` and
+  `mddj read tox list-versions`
+
 ## 0.0.4
 
 - Add a command to read `version`: `mddj read version`

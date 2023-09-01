@@ -28,6 +28,7 @@ dependencies = [
   # although 'wheel' is not used directly, any use of non-isolated builds
   # will need it, so including it makes a wider range of usages work smoothly
   "wheel",
+  "packaging",
   "build>=0.10.0",
   "click",
   'tomli;python_version<"3.11"',

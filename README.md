@@ -50,6 +50,14 @@ Show the `requires_python` field.
 
 Show the `version`.
 
+#### `mddj read tox min-version`
+
+Show the minimum python version in the `tox` env_list.
+
+#### `mddj read tox list-versions`
+
+Show all python versions in the `tox` env_list.
+
 #### `mddj write version`
 
 Write a new version to a target file, defaulting to a `version = ...` assignment
