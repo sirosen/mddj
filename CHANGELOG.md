@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.6
+
 - Add `mddj self version` command to see the current `mddj` version
 
 ## 0.0.5
