@@ -1,6 +1,7 @@
 import click
 
 from .read import read
+from .self import self
 from .state import CommandState, common_args
 from .write import write
 
@@ -13,3 +14,4 @@ def main(*, state: CommandState) -> None:
 
 main.add_command(read)
 main.add_command(write)
+main.add_command(self)
