@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `mddj self version` command to see the current `mddj` version
+
 ## 0.0.5
 
 - Initial commands in support of reading `tox.ini` data (via subprocess

@@ -42,6 +42,10 @@ to the current environment, but will be much faster.
 
 See `--help` on each command for more detail on supported options.
 
+#### `mddj self version`
+
+Show the version of `mddj`.
+
 #### `mddj read requires-python`
 
 Show the `requires_python` field.
