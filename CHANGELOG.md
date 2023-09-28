@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.7
+
 - Fix a bug which caused `mddj read tox list-versions` to contain duplicates
   for certain configs
 
