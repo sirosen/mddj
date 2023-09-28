@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix a bug which caused `mddj read tox list-versions` to contain duplicates
+  for certain configs
+
 ## 0.0.6
 
 - Add `mddj self version` command to see the current `mddj` version

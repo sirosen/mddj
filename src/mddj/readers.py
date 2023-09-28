@@ -49,12 +49,12 @@ def get_tox_tested_versions() -> list[str]:
 
     output = subprocess.check_output([tox, "--listenvs"], text=True)
 
-    versions = []
+    versions = set()
     for line in output.splitlines():
         for part in line.split("-"):
             if match := re.match(r"py(\d)(\d+)", part):
-                versions.append(match.group(1) + "." + match.group(2))
-    return versions
+                versions.add(match.group(1) + "." + match.group(2))
+    return list(versions)
 
 
 def _check_tox_version(tox_command: str) -> t.Literal[3, 4]:
