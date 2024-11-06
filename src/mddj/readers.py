@@ -52,7 +52,7 @@ def get_tox_tested_versions() -> list[str]:
     versions = set()
     for line in output.splitlines():
         for part in line.split("-"):
-            if match := re.match(r"py(\d)(\d+)", part):
+            if match := re.match(r"py(\d)\.?(\d+)", part):
                 versions.add(match.group(1) + "." + match.group(2))
     return list(versions)
 
