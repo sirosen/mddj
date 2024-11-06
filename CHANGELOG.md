@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix handling of `tox.ini` data to support reading python versions with a dot,
+  as in `py3.8,py3.9`
+
 ## 0.0.7
 
 - Fix a bug which caused `mddj read tox list-versions` to contain duplicates
