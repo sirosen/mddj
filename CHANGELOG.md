@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.8
+
 - Fix handling of `tox.ini` data to support reading python versions with a dot,
   as in `py3.8,py3.9`
 
