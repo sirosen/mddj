@@ -19,6 +19,10 @@ class CommandState:
         self.source_dir = pathlib.Path.cwd()
 
     @functools.cached_property
+    def pyproject_path(self) -> pathlib.Path:
+        return self.source_dir / "pyproject.toml"
+
+    @functools.cached_property
     def isolated_builds(self) -> bool:
         if (var := os.environ.get("MDDJ_ISOLATED_BUILDS")) is not None:
             return not (var.lower() in ("0", "false"))
@@ -39,7 +43,7 @@ class CommandState:
         )
 
     def read_config(self) -> ConfigData:
-        return read_config(self.source_dir / "pyproject.toml")
+        return read_config(self.pyproject_path)
 
 
 def common_args(cmd: F) -> F:
