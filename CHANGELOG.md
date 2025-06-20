@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Drop support for Python 3.8, Python 3.9
+- Update dependency bounds
+
 ## 0.0.8
 
 - Fix handling of `tox.ini` data to support reading python versions with a dot,

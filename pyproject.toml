@@ -7,7 +7,7 @@ name = "mddj"
 version = "0.0.8"
 description = 'A CLI for extracting python metadata from packages'
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 keywords = []
 authors = [
@@ -16,8 +16,6 @@ authors = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -29,8 +27,8 @@ dependencies = [
   # will need it, so including it makes a wider range of usages work smoothly
   "wheel",
   "packaging",
-  "build>=0.10.0",
-  "click",
+  "build>=1.2.2",
+  "click>=8.2.0",
   'tomli;python_version<"3.11"',
 ]
 

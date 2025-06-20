@@ -21,4 +21,4 @@ def _in_repo_root():
 
 
 def test_requires_python(run_line):
-    run_line("mddj read requires-python", search_stdout=r"^>=3\.8$")
+    run_line("mddj read requires-python", search_stdout=r"^>=3\.10$")
