@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `mddj` can now be used from subdirectories of a project, and will discover
+  the project root based on some simple heuristics.
+
 ## 0.1.0
 
 - Drop support for Python 3.8, Python 3.9
@@ -9,8 +12,6 @@
 - Data is now read from `pyproject.toml` when possible, with build metadata
   used as a fallback if that fails
 - Support Python 3.13, Python 3.14
-- `mddj` can now be used from subdirectories of a project, and will discover
-  the project root based on some simple heuristics.
 
 ## 0.0.8
 
