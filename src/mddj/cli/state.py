@@ -9,6 +9,7 @@ import click
 
 from mddj._compat import metadata
 from mddj.config import ConfigData, read_config
+from mddj.discovery import discover_project_dir
 from mddj.readers import get_wheel_metadata
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
@@ -16,7 +17,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 class CommandState:
     def __init__(self) -> None:
-        self.source_dir = pathlib.Path.cwd()
+        self.source_dir = discover_project_dir()
 
     @functools.cached_property
     def pyproject_path(self) -> pathlib.Path:
