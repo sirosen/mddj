@@ -6,6 +6,7 @@
 - Update dependency bounds
 - Data is now read from `pyproject.toml` when possible, with build metadata
   used as a fallback if that fails
+- Support Python 3.13, Python 3.14
 
 ## 0.0.8
 
