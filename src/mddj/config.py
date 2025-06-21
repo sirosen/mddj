@@ -25,6 +25,9 @@ class WriteVersionAssignConfig(WriteVersionConfig):
 
 
 class ReadVersionSetting(enum.Enum):
+    # the default behavior is to first try to read pyproject.toml
+    # and fallback to getting build metadata if that doesn't work
+    default = enum.auto()
     pyproject = enum.auto()
     build = enum.auto()
 
@@ -71,7 +74,9 @@ class ConfigData:
 
     @functools.cached_property
     def read_version_setting(self) -> ReadVersionSetting:
-        if self.read_version == "pyproject.toml":
+        if self.read_version == "default":
+            return ReadVersionSetting.default
+        elif self.read_version == "pyproject.toml":
             return ReadVersionSetting.pyproject
         elif self.read_version == "build":
             return ReadVersionSetting.build
@@ -82,7 +87,7 @@ class ConfigData:
 def _default_config() -> ConfigData:
     return ConfigData(
         write_version="assign: pyproject.toml: version",
-        read_version="pyproject.toml",
+        read_version="default",
     )
 
 
