@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0
+
 - Drop support for Python 3.8, Python 3.9
 - Update dependency bounds
 - Data is now read from `pyproject.toml` when possible, with build metadata
