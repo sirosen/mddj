@@ -24,6 +24,26 @@ python_requires = >=3.10
         run_line("mddj read requires-python", search_stdout=r"^>=3\.10$")
 
 
+def test_read_version_from_build(tmpdir, run_line):
+    setupcfg = tmpdir.join("setup.cfg")
+
+    setupcfg.write(
+        """\
+[metadata]
+name = foopkg
+version = 1.0.0
+
+author = Foo
+author_email = foo@example.org
+"""
+    )
+    tmpdir.join("setup.py").write("from setuptools import setup; setup()\n")
+    tmpdir.join("foopkg.py").write("")
+
+    with tmpdir.as_cwd():
+        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
+
+
 @pytest.mark.parametrize("quote_char", ("", '"', "'"))
 def test_update_version_assignment(tmpdir, run_line, quote_char):
     setupcfg = tmpdir.join("setup.cfg")

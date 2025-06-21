@@ -4,11 +4,18 @@ import pathlib
 import re
 import shutil
 import subprocess
+import sys
 import typing as t
 
 import build.util
 
 from mddj._compat import metadata
+from mddj._types import TomlValue
+
+if sys.version_info < (3, 11):
+    import tomli as tomllib
+else:
+    import tomllib
 
 
 class ToxReaderError(RuntimeError):
@@ -75,3 +82,30 @@ def _check_tox_version(tox_command: str) -> t.Literal[3, 4]:
         return 4
     else:
         raise ToxReaderError("'tox --version' was not a recognized version.")
+
+
+def read_pyproject_toml_value(pyproject_path: pathlib.Path, *path: str | int) -> object:
+    """
+    Read an arbitrary value from 'pyproject.toml'
+    """
+    with pyproject_path.open("rb") as fp:
+        data = tomllib.load(fp)
+
+    # traverse the TOML data structure
+    cursor: TomlValue = data
+    for subkey in path:
+        # pedantically enumerate the branches for static type checking to
+        # easily see the association between key and container types
+        if isinstance(subkey, str) and isinstance(cursor, dict):  # slyp: disable=W200
+            cursor = cursor[subkey]
+        elif isinstance(subkey, int) and isinstance(cursor, list):
+            cursor = cursor[subkey]
+        else:
+            message = f"Could not lookup '{path}' in pyproject.toml."
+            if not isinstance(cursor, (dict, list)):
+                message = f"{message} Terminated in a non-container type."
+            else:
+                message = f"{message} Incorrect index type."
+            raise LookupError(message)
+
+    return cursor

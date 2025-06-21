@@ -61,3 +61,26 @@ authors = [
 ]
 """
     )
+
+
+def test_read_version_from_pyproject(tmpdir, run_line):
+    pyproject = tmpdir.join("pyproject.toml")
+
+    pyproject.write(
+        """\
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "foopkg"
+version = "8.0.7"
+authors = [
+  { name = "Foo", email = "foo@example.org" },
+]
+"""
+    )
+    tmpdir.join("foopkg.py").write("")
+
+    with tmpdir.as_cwd():
+        run_line("mddj read version", search_stdout=r"^8\.0\.7$")
