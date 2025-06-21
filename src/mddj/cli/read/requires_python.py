@@ -1,6 +1,9 @@
+import pathlib
+
 import click
 
 from mddj.cli.state import CommandState, common_args
+from mddj.readers import read_pyproject_toml_value
 
 
 @click.command("requires-python")
@@ -14,10 +17,14 @@ def read_requires_python(*, state: CommandState, lower_bound: bool) -> None:
     """
     Read the 'Requires-Python' data.
     """
-    data = state.read_metadata()
-    requires_python = data.get("Requires-Python")
+    # first, try reading from pyproject.toml
+    requires_python = _get_requires_python_pyproject(state.pyproject_path)
 
-    if requires_python is None or not isinstance(requires_python, str):
+    # if that fails, fallback to trying to read from build metadata
+    if requires_python is None:
+        requires_python = _get_requires_python_build(state)
+
+    if requires_python is None:
         raise RuntimeError("No Requires-Python data found")
 
     if lower_bound:
@@ -42,3 +49,20 @@ def find_lower_bound(req: str) -> str:
         raise RuntimeError("Found no lower bounds")
     else:
         return lower_bounds[0]
+
+
+def _get_requires_python_pyproject(pyproject_path: pathlib.Path) -> str | None:
+    try:
+        return str(
+            read_pyproject_toml_value(pyproject_path, "project", "requires_python")
+        )
+    except (FileNotFoundError, LookupError):
+        return None
+
+
+def _get_requires_python_build(state: CommandState) -> str | None:
+    data = state.read_metadata()
+    value = data.get("Requires-Python")
+    if value is None:
+        return None
+    return str(value)
