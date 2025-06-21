@@ -1,5 +1,4 @@
 import dataclasses
-import enum
 import functools
 import pathlib
 import sys
@@ -24,18 +23,9 @@ class WriteVersionAssignConfig(WriteVersionConfig):
     key: str
 
 
-class ReadVersionSetting(enum.Enum):
-    # the default behavior is to first try to read pyproject.toml
-    # and fallback to getting build metadata if that doesn't work
-    default = enum.auto()
-    pyproject = enum.auto()
-    build = enum.auto()
-
-
 @dataclasses.dataclass
 class ConfigData:
     write_version: str
-    read_version: str
 
     @functools.cached_property
     def write_version_config(self) -> WriteVersionConfig:
@@ -72,22 +62,10 @@ class ConfigData:
                 f"Unimplemented write_version_mode: {write_version_mode}"
             )
 
-    @functools.cached_property
-    def read_version_setting(self) -> ReadVersionSetting:
-        if self.read_version == "default":
-            return ReadVersionSetting.default
-        elif self.read_version == "pyproject.toml":
-            return ReadVersionSetting.pyproject
-        elif self.read_version == "build":
-            return ReadVersionSetting.build
-        else:
-            raise ValueError("read_version must be one of ['pyproject.toml', 'build'].")
-
 
 def _default_config() -> ConfigData:
     return ConfigData(
         write_version="assign: pyproject.toml: version",
-        read_version="default",
     )
 
 
@@ -106,5 +84,4 @@ def read_config(pyproject_path: pathlib.Path) -> ConfigData:
 
     return ConfigData(
         write_version=mddj_data.get("write_version", default.write_version),
-        read_version=mddj_data.get("read_version", default.read_version),
     )
