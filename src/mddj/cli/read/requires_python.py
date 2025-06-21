@@ -54,7 +54,7 @@ def find_lower_bound(req: str) -> str:
 def _get_requires_python_pyproject(pyproject_path: pathlib.Path) -> str | None:
     try:
         return str(
-            read_pyproject_toml_value(pyproject_path, "project", "requires_python")
+            read_pyproject_toml_value(pyproject_path, "project", "requires-python")
         )
     except (FileNotFoundError, LookupError):
         return None
