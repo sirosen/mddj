@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0
+
 - `mddj` can now be used from subdirectories of a project, and will discover
   the project root based on some simple heuristics.
 - `mdd read version` now supports an `--attr` flag to read the major, minor,
