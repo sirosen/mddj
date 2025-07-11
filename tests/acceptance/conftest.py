@@ -27,6 +27,7 @@ def run_line(cli_runner):
         stdin=None,
         search_stdout=None,
         search_stderr=None,
+        env=None,
     ):
         from mddj import main
 
@@ -37,7 +38,11 @@ def run_line(cli_runner):
         # run the line. main is the "mddj" part of the line
         # if we are expecting success (0), don't catch any exceptions.
         result = cli_runner.invoke(
-            main, args[1:], input=stdin, catch_exceptions=bool(assert_exit_code)
+            main,
+            args[1:],
+            input=stdin,
+            catch_exceptions=bool(assert_exit_code),
+            env=env,
         )
         if result.exit_code != assert_exit_code:
             message = f"""\

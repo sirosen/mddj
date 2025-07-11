@@ -30,6 +30,7 @@ dependencies = [
   "wheel",
   "packaging",
   "build>=1.2.2",
+  "pyproject_hooks>1",
   "click>=8.2.0",
   'tomli;python_version<"3.11"',
 ]
