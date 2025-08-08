@@ -1,22 +1,18 @@
 from __future__ import annotations
 
+import collections.abc
 import pathlib
 import re
 import shutil
 import subprocess
-import sys
 import typing as t
 
 import build.util
 import pyproject_hooks
+import tomlkit
 
 from mddj._compat import metadata
 from mddj._types import TomlValue
-
-if sys.version_info < (3, 11):
-    import tomli as tomllib
-else:
-    import tomllib
 
 
 class ToxReaderError(RuntimeError):
@@ -83,20 +79,25 @@ def read_pyproject_toml_value(pyproject_path: pathlib.Path, *path: str | int) ->
     Read an arbitrary value from 'pyproject.toml'
     """
     with pyproject_path.open("rb") as fp:
-        data = tomllib.load(fp)
+        data = tomlkit.load(fp)
 
     # traverse the TOML data structure
     cursor: TomlValue = data
     for subkey in path:
         # pedantically enumerate the branches for static type checking to
         # easily see the association between key and container types
-        if isinstance(subkey, str) and isinstance(cursor, dict):  # slyp: disable=W200
+        if isinstance(subkey, str) and isinstance(  # slyp: disable=W200
+            cursor, (tomlkit.TOMLDocument, tomlkit.items.Table)
+        ):
             cursor = cursor[subkey]
-        elif isinstance(subkey, int) and isinstance(cursor, list):
+        elif isinstance(subkey, int) and isinstance(cursor, tomlkit.items.Array):
             cursor = cursor[subkey]
         else:
             message = f"Could not lookup '{path}' in pyproject.toml."
-            if not isinstance(cursor, (dict, list)):
+            # str is a container and a scalar...
+            if isinstance(cursor, str) or not isinstance(
+                cursor, collections.abc.Container
+            ):
                 message = f"{message} Terminated in a non-container type."
             else:
                 message = f"{message} Incorrect index type."

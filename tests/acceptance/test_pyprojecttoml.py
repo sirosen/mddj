@@ -175,3 +175,49 @@ def test_read_version_attribute_from_pyproject_fails_due_to_type(
             search_stderr="^" + re.escape(message) + "$",
             assert_exit_code=1,
         )
+
+
+@pytest.mark.parametrize(
+    "bad_toml",
+    (
+        pytest.param(
+            """\
+            tool = 1
+            """,
+            id="tool-not-a-table",
+        ),
+        pytest.param(
+            """\
+            tool.mddj = 1
+            """,
+            id="tool.mddj-not-a-table",
+        ),
+    ),
+)
+def test_read_version_from_pyproject_ignores_malformed_tool_config(
+    tmpdir, run_line, bad_toml
+):
+    pyproject = tmpdir.join("pyproject.toml")
+
+    pyproject.write(
+        d(
+            f"""\
+            {bad_toml}
+
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
+
+            [project]
+            name = "foopkg"
+            version = "8.0.7"
+            authors = [
+              {{ name = "Foo", email = "foo@example.org" }},
+            ]
+            """
+        )
+    )
+    tmpdir.join("foopkg.py").write("")
+
+    with tmpdir.as_cwd():
+        run_line("mddj read version", search_stdout=r"^8\.0\.7$")

@@ -1,13 +1,8 @@
 import dataclasses
 import functools
 import pathlib
-import sys
 
-if sys.version_info < (3, 11):
-    import tomli as tomllib
-else:
-    import tomllib
-
+import tomlkit
 
 _WRITE_VERSION_MODES = ("assign",)
 
@@ -75,10 +70,15 @@ def read_config(pyproject_path: pathlib.Path) -> ConfigData:
         return default
 
     with pyproject_path.open("rb") as f:
-        data = tomllib.load(f)
+        data = tomlkit.load(f)
 
     try:
-        mddj_data = data["tool"]["mddj"]
+        tool_table = data["tool"]
+        if not isinstance(tool_table, tomlkit.items.Table):
+            raise KeyError("'tool' was not a table")
+        mddj_data = tool_table["mddj"]
+        if not isinstance(mddj_data, tomlkit.items.Table):
+            raise KeyError("'tool.mddj' was not a table")
     except KeyError:
         return default
 
