@@ -1,4 +1,5 @@
 import re
+from textwrap import dedent as d
 
 import pytest
 
@@ -7,19 +8,21 @@ def test_read_python_requires(tmpdir, run_line):
     pyproject = tmpdir.join("pyproject.toml")
 
     pyproject.write(
-        """\
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+        d(
+            """\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
 
-[project]
-name = "foopkg"
-version = "1.0.0"
-authors = [
-  { name = "Foo", email = "foo@example.org" },
-]
-requires-python = ">=3.11"
-"""
+            [project]
+            name = "foopkg"
+            version = "1.0.0"
+            authors = [
+              { name = "Foo", email = "foo@example.org" },
+            ]
+            requires-python = ">=3.11"
+            """
+        )
     )
     tmpdir.join("foopkg.py").write("")
 
@@ -32,36 +35,38 @@ def test_update_version_assignment(tmpdir, run_line, quote_char):
     pyproject = tmpdir.join("pyproject.toml")
 
     pyproject.write(
-        f"""\
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+        d(
+            f"""\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
 
-[project]
-name = "foopkg"
-version = {quote_char}1.0.0{quote_char}
-authors = [
-  {{ name = "Foo", email = "foo@example.org" }},
-]
-"""
+            [project]
+            name = "foopkg"
+            version = {quote_char}1.0.0{quote_char}
+            authors = [
+              {{ name = "Foo", email = "foo@example.org" }},
+            ]
+            """
+        )
     )
 
     with tmpdir.as_cwd():
         run_line("mddj write version 2.3.1")
 
-    assert pyproject.read() == (
+    assert pyproject.read() == d(
         f"""\
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+        [build-system]
+        requires = ["setuptools"]
+        build-backend = "setuptools.build_meta"
 
-[project]
-name = "foopkg"
-version = {quote_char}2.3.1{quote_char}
-authors = [
-  {{ name = "Foo", email = "foo@example.org" }},
-]
-"""
+        [project]
+        name = "foopkg"
+        version = {quote_char}2.3.1{quote_char}
+        authors = [
+          {{ name = "Foo", email = "foo@example.org" }},
+        ]
+        """
     )
 
 
@@ -69,18 +74,20 @@ def test_read_version_from_pyproject(tmpdir, run_line):
     pyproject = tmpdir.join("pyproject.toml")
 
     pyproject.write(
-        """\
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+        d(
+            """\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
 
-[project]
-name = "foopkg"
-version = "8.0.7"
-authors = [
-  { name = "Foo", email = "foo@example.org" },
-]
-"""
+            [project]
+            name = "foopkg"
+            version = "8.0.7"
+            authors = [
+              { name = "Foo", email = "foo@example.org" },
+            ]
+            """
+        )
     )
     tmpdir.join("foopkg.py").write("")
 
@@ -106,18 +113,20 @@ def test_read_version_attribute_from_pyproject(tmpdir, run_line, version, attr, 
     pyproject = tmpdir.join("pyproject.toml")
 
     pyproject.write(
-        f"""\
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+        d(
+            f"""\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
 
-[project]
-name = "foopkg"
-version = "{version}"
-authors = [
-  {{ name = "Foo", email = "foo@example.org" }},
-]
-"""
+            [project]
+            name = "foopkg"
+            version = "{version}"
+            authors = [
+              {{ name = "Foo", email = "foo@example.org" }},
+            ]
+            """
+        )
     )
     tmpdir.join("foopkg.py").write("")
 
@@ -141,18 +150,20 @@ def test_read_version_attribute_from_pyproject_fails_due_to_type(
     pyproject = tmpdir.join("pyproject.toml")
 
     pyproject.write(
-        f"""\
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+        d(
+            f"""\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
 
-[project]
-name = "foopkg"
-version = "{version}"
-authors = [
-  {{ name = "Foo", email = "foo@example.org" }},
-]
-"""
+            [project]
+            name = "foopkg"
+            version = "{version}"
+            authors = [
+              {{ name = "Foo", email = "foo@example.org" }},
+            ]
+            """
+        )
     )
     tmpdir.join("foopkg.py").write("")
 

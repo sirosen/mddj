@@ -1,3 +1,5 @@
+from textwrap import dedent as d
+
 import pytest
 
 
@@ -5,17 +7,19 @@ def test_read_python_requires(tmpdir, run_line, capfd):
     setupcfg = tmpdir.join("setup.cfg")
 
     setupcfg.write(
-        """\
-[metadata]
-name = foopkg
-version = 1.0.0
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
 
-author = Foo
-author_email = foo@example.org
+            author = Foo
+            author_email = foo@example.org
 
-[options]
-python_requires = >=3.10
-"""
+            [options]
+            python_requires = >=3.10
+            """
+        )
     )
     tmpdir.join("setup.py").write("from setuptools import setup; setup()\n")
     tmpdir.join("foopkg.py").write("")
@@ -33,17 +37,19 @@ def test_read_python_requires_with_full_build_output_shows_all_data(
     setupcfg = tmpdir.join("setup.cfg")
 
     setupcfg.write(
-        """\
-[metadata]
-name = foopkg
-version = 1.0.0
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
 
-author = Foo
-author_email = foo@example.org
+            author = Foo
+            author_email = foo@example.org
 
-[options]
-python_requires = >=3.10
-"""
+            [options]
+            python_requires = >=3.10
+            """
+        )
     )
     tmpdir.join("setup.py").write("from setuptools import setup; setup()\n")
     tmpdir.join("foopkg.py").write("")
@@ -65,14 +71,16 @@ def test_read_version_from_build(tmpdir, run_line):
     setupcfg = tmpdir.join("setup.cfg")
 
     setupcfg.write(
-        """\
-[metadata]
-name = foopkg
-version = 1.0.0
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
 
-author = Foo
-author_email = foo@example.org
-"""
+            author = Foo
+            author_email = foo@example.org
+            """
+        )
     )
     tmpdir.join("setup.py").write("from setuptools import setup; setup()\n")
     tmpdir.join("foopkg.py").write("")
@@ -86,31 +94,35 @@ def test_update_version_assignment(tmpdir, run_line, quote_char):
     setupcfg = tmpdir.join("setup.cfg")
     pyproject = tmpdir.join("pyproject.toml")
     pyproject.write(
-        """\
-[tool.mddj]
-write_version = "assign:setup.cfg:version"
-"""
+        d(
+            """\
+            [tool.mddj]
+            write_version = "assign:setup.cfg:version"
+            """
+        )
     )
 
     setupcfg.write(
-        f"""\
-[metadata]
-name = foopkg
-version = {quote_char}1.0.0{quote_char}
-author = Foo
-author_email = foo@example.org
-"""
+        d(
+            f"""\
+            [metadata]
+            name = foopkg
+            version = {quote_char}1.0.0{quote_char}
+            author = Foo
+            author_email = foo@example.org
+            """
+        )
     )
 
     with tmpdir.as_cwd():
         run_line("mddj write version 1.0.1")
 
-    assert setupcfg.read() == (
+    assert setupcfg.read() == d(
         f"""\
-[metadata]
-name = foopkg
-version = {quote_char}1.0.1{quote_char}
-author = Foo
-author_email = foo@example.org
-"""
+        [metadata]
+        name = foopkg
+        version = {quote_char}1.0.1{quote_char}
+        author = Foo
+        author_email = foo@example.org
+        """
     )

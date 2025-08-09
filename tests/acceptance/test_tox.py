@@ -1,14 +1,19 @@
+from textwrap import dedent as d
+
+
 def test_read_min_version(tmpdir, run_line):
     toxini = tmpdir.join("tox.ini")
 
     toxini.write(
-        """\
-[tox]
-envlist = py{36,37,38,35,39,310}
+        d(
+            """\
+            [tox]
+            envlist = py{36,37,38,35,39,310}
 
-[testenv]
-commands = python -m pytest
-"""
+            [testenv]
+            commands = python -m pytest
+            """
+        )
     )
 
     with tmpdir.as_cwd():
@@ -19,13 +24,15 @@ def test_read_version_list(tmpdir, run_line):
     toxini = tmpdir.join("tox.ini")
 
     toxini.write(
-        """\
-[tox]
-envlist = py{36,37,38,35,39,310}
+        d(
+            """\
+            [tox]
+            envlist = py{36,37,38,35,39,310}
 
-[testenv]
-commands = python -m pytest
-"""
+            [testenv]
+            commands = python -m pytest
+            """
+        )
     )
 
     with tmpdir.as_cwd():
@@ -38,15 +45,17 @@ def test_read_version_list_with_repeats_and_factors(tmpdir, run_line):
     toxini = tmpdir.join("tox.ini")
 
     toxini.write(
-        """\
-[tox]
-envlist =
-    py{36,37,38,35,39,310}
-    py{35,310}-toml
+        d(
+            """\
+            [tox]
+            envlist =
+                py{36,37,38,35,39,310}
+                py{35,310}-toml
 
-[testenv]
-commands = python -m pytest
-"""
+            [testenv]
+            commands = python -m pytest
+            """
+        )
     )
 
     with tmpdir.as_cwd():
