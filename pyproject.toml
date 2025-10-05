@@ -43,6 +43,9 @@ changelog = "https://github.com/sirosen/mddj/blob/main/CHANGELOG.md"
 mddj = "mddj.cli:main"
 
 
+[tool.pytest.ini_options]
+addopts = "-p no:legacypath"
+
 [tool.coverage.run]
 parallel = true
 source = ["mddj"]
