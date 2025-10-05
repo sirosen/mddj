@@ -1,12 +1,13 @@
+import contextlib
 from textwrap import dedent as d
 
 import pytest
 
 
-def test_read_python_requires(tmpdir, run_line, capfd):
-    setupcfg = tmpdir.join("setup.cfg")
+def test_read_python_requires(tmp_path, run_line, capfd):
+    setupcfg = tmp_path / "setup.cfg"
 
-    setupcfg.write(
+    setupcfg.write_text(
         d(
             """\
             [metadata]
@@ -21,10 +22,10 @@ def test_read_python_requires(tmpdir, run_line, capfd):
             """
         )
     )
-    tmpdir.join("setup.py").write("from setuptools import setup; setup()\n")
-    tmpdir.join("foopkg.py").write("")
+    (tmp_path / "setup.py").write_text("from setuptools import setup; setup()\n")
+    (tmp_path / "foopkg.py").touch()
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         result = run_line("mddj read requires-python", search_stdout=r"^>=3\.10$")
         assert len(result.stdout.splitlines()) == 1
     captured = capfd.readouterr()
@@ -32,11 +33,11 @@ def test_read_python_requires(tmpdir, run_line, capfd):
 
 
 def test_read_python_requires_with_full_build_output_shows_all_data(
-    tmpdir, run_line, capfd
+    tmp_path, run_line, capfd
 ):
-    setupcfg = tmpdir.join("setup.cfg")
+    setupcfg = tmp_path / "setup.cfg"
 
-    setupcfg.write(
+    setupcfg.write_text(
         d(
             """\
             [metadata]
@@ -51,10 +52,10 @@ def test_read_python_requires_with_full_build_output_shows_all_data(
             """
         )
     )
-    tmpdir.join("setup.py").write("from setuptools import setup; setup()\n")
-    tmpdir.join("foopkg.py").write("")
+    (tmp_path / "setup.py").write_text("from setuptools import setup; setup()\n")
+    (tmp_path / "foopkg.py").touch()
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         result = run_line(
             "mddj read requires-python",
             search_stdout=r"^>=3\.10$",
@@ -67,10 +68,10 @@ def test_read_python_requires_with_full_build_output_shows_all_data(
     assert "running dist_info" in captured.out
 
 
-def test_read_version_from_build(tmpdir, run_line):
-    setupcfg = tmpdir.join("setup.cfg")
+def test_read_version_from_build(tmp_path, run_line):
+    setupcfg = tmp_path / "setup.cfg"
 
-    setupcfg.write(
+    setupcfg.write_text(
         d(
             """\
             [metadata]
@@ -82,18 +83,18 @@ def test_read_version_from_build(tmpdir, run_line):
             """
         )
     )
-    tmpdir.join("setup.py").write("from setuptools import setup; setup()\n")
-    tmpdir.join("foopkg.py").write("")
+    (tmp_path / "setup.py").write_text("from setuptools import setup; setup()\n")
+    (tmp_path / "foopkg.py").touch()
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         run_line("mddj read version", search_stdout=r"^1\.0\.0$")
 
 
 @pytest.mark.parametrize("quote_char", ("", '"', "'"))
-def test_update_version_assignment(tmpdir, run_line, quote_char):
-    setupcfg = tmpdir.join("setup.cfg")
-    pyproject = tmpdir.join("pyproject.toml")
-    pyproject.write(
+def test_update_version_assignment(tmp_path, run_line, quote_char):
+    setupcfg = tmp_path / "setup.cfg"
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
         d(
             """\
             [tool.mddj]
@@ -102,7 +103,7 @@ def test_update_version_assignment(tmpdir, run_line, quote_char):
         )
     )
 
-    setupcfg.write(
+    setupcfg.write_text(
         d(
             f"""\
             [metadata]
@@ -114,10 +115,10 @@ def test_update_version_assignment(tmpdir, run_line, quote_char):
         )
     )
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         run_line("mddj write version 1.0.1")
 
-    assert setupcfg.read() == d(
+    assert setupcfg.read_text() == d(
         f"""\
         [metadata]
         name = foopkg

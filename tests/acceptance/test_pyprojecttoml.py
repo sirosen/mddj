@@ -1,13 +1,14 @@
+import contextlib
 import re
 from textwrap import dedent as d
 
 import pytest
 
 
-def test_read_python_requires(tmpdir, run_line):
-    pyproject = tmpdir.join("pyproject.toml")
+def test_read_python_requires(tmp_path, run_line):
+    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write(
+    pyproject.write_text(
         d(
             """\
             [build-system]
@@ -24,17 +25,17 @@ def test_read_python_requires(tmpdir, run_line):
             """
         )
     )
-    tmpdir.join("foopkg.py").write("")
+    (tmp_path / "foopkg.py").touch()
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         run_line("mddj read requires-python", search_stdout=r"^>=3\.11$")
 
 
 @pytest.mark.parametrize("quote_char", ('"', "'"))
-def test_update_version_assignment(tmpdir, run_line, quote_char):
-    pyproject = tmpdir.join("pyproject.toml")
+def test_update_version_assignment(tmp_path, run_line, quote_char):
+    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write(
+    pyproject.write_text(
         d(
             f"""\
             [build-system]
@@ -51,10 +52,10 @@ def test_update_version_assignment(tmpdir, run_line, quote_char):
         )
     )
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         run_line("mddj write version 2.3.1")
 
-    assert pyproject.read() == d(
+    assert pyproject.read_text() == d(
         f"""\
         [build-system]
         requires = ["setuptools"]
@@ -70,10 +71,10 @@ def test_update_version_assignment(tmpdir, run_line, quote_char):
     )
 
 
-def test_read_version_from_pyproject(tmpdir, run_line):
-    pyproject = tmpdir.join("pyproject.toml")
+def test_read_version_from_pyproject(tmp_path, run_line):
+    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write(
+    pyproject.write_text(
         d(
             """\
             [build-system]
@@ -89,9 +90,9 @@ def test_read_version_from_pyproject(tmpdir, run_line):
             """
         )
     )
-    tmpdir.join("foopkg.py").write("")
+    (tmp_path / "foopkg.py").write_text("")
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         run_line("mddj read version", search_stdout=r"^8\.0\.7$")
 
 
@@ -109,10 +110,12 @@ def test_read_version_from_pyproject(tmpdir, run_line):
         ("9.7.5rc1", "release", "9.7.5"),
     ),
 )
-def test_read_version_attribute_from_pyproject(tmpdir, run_line, version, attr, result):
-    pyproject = tmpdir.join("pyproject.toml")
+def test_read_version_attribute_from_pyproject(
+    tmp_path, run_line, version, attr, result
+):
+    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write(
+    pyproject.write_text(
         d(
             f"""\
             [build-system]
@@ -128,9 +131,9 @@ def test_read_version_attribute_from_pyproject(tmpdir, run_line, version, attr, 
             """
         )
     )
-    tmpdir.join("foopkg.py").write("")
+    (tmp_path / "foopkg.py").write_text("")
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         run_line(
             f"mddj read version --attr {attr}",
             search_stdout="^" + re.escape(result) + "$",
@@ -145,11 +148,11 @@ def test_read_version_attribute_from_pyproject(tmpdir, run_line, version, attr, 
     ),
 )
 def test_read_version_attribute_from_pyproject_fails_due_to_type(
-    tmpdir, run_line, version, attr, message
+    tmp_path, run_line, version, attr, message
 ):
-    pyproject = tmpdir.join("pyproject.toml")
+    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write(
+    pyproject.write_text(
         d(
             f"""\
             [build-system]
@@ -165,9 +168,9 @@ def test_read_version_attribute_from_pyproject_fails_due_to_type(
             """
         )
     )
-    tmpdir.join("foopkg.py").write("")
+    (tmp_path / "foopkg.py").write_text("")
 
-    with tmpdir.as_cwd():
+    with contextlib.chdir(tmp_path):
         run_line(
             f"mddj read version --attr {attr}",
             search_stderr="^" + re.escape(message) + "$",
