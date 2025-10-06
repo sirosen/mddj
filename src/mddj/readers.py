@@ -12,7 +12,7 @@ import pyproject_hooks
 import tomlkit
 
 from mddj._compat import metadata
-from mddj._types import TomlValue
+from mddj._types import TomlValue, is_toml_array, is_toml_mapping
 
 
 class ToxReaderError(RuntimeError):
@@ -86,11 +86,9 @@ def read_pyproject_toml_value(pyproject_path: pathlib.Path, *path: str | int) ->
     for subkey in path:
         # pedantically enumerate the branches for static type checking to
         # easily see the association between key and container types
-        if isinstance(subkey, str) and isinstance(  # slyp: disable=W200
-            cursor, (tomlkit.TOMLDocument, tomlkit.items.Table)
-        ):
+        if isinstance(subkey, str) and is_toml_mapping(cursor):  # slyp: disable=W200
             cursor = cursor[subkey]
-        elif isinstance(subkey, int) and isinstance(cursor, tomlkit.items.Array):
+        elif isinstance(subkey, int) and is_toml_array(cursor):
             cursor = cursor[subkey]
         else:
             message = f"Could not lookup '{path}' in pyproject.toml."
