@@ -13,7 +13,8 @@ def test_read_min_version(chdir, tmp_path, run_line):
             [testenv]
             commands = python -m pytest
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with chdir(tmp_path):
@@ -32,7 +33,8 @@ def test_read_version_list(chdir, tmp_path, run_line):
             [testenv]
             commands = python -m pytest
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with chdir(tmp_path):
@@ -55,7 +57,8 @@ def test_read_version_list_with_repeats_and_factors(chdir, tmp_path, run_line):
             [testenv]
             commands = python -m pytest
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with chdir(tmp_path):
