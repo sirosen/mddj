@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0
+
 - `mddj write version` now uses a round-trip TOML parser (`tomlkit`) to update
   the value of `project.version`, which is less error-prone than the assignment
   parsing behavior.
