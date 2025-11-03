@@ -10,7 +10,7 @@
 
 - `mddj` can now be used from subdirectories of a project, and will discover
   the project root based on some simple heuristics.
-- `mdd read version` now supports an `--attr` flag to read the major, minor,
+- `mddj read version` now supports an `--attr` flag to read the major, minor,
   micro, release version, prerelease version, or postrelease version.
   `--attr=pre` and `--attr=post` may print errors and `exit(1)` if the version
   is not of the correct type.
