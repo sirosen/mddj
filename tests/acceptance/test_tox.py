@@ -1,8 +1,7 @@
-import contextlib
 from textwrap import dedent as d
 
 
-def test_read_min_version(tmp_path, run_line):
+def test_read_min_version(chdir, tmp_path, run_line):
     toxini = tmp_path / "tox.ini"
 
     toxini.write_text(
@@ -17,11 +16,11 @@ def test_read_min_version(tmp_path, run_line):
         )
     )
 
-    with contextlib.chdir(tmp_path):
+    with chdir(tmp_path):
         run_line("mddj read tox min-version", search_stdout="3.5")
 
 
-def test_read_version_list(tmp_path, run_line):
+def test_read_version_list(chdir, tmp_path, run_line):
     toxini = tmp_path / "tox.ini"
 
     toxini.write_text(
@@ -36,13 +35,13 @@ def test_read_version_list(tmp_path, run_line):
         )
     )
 
-    with contextlib.chdir(tmp_path):
+    with chdir(tmp_path):
         result = run_line("mddj read tox list-versions")
 
     assert result.stdout == "3.5\n3.6\n3.7\n3.8\n3.9\n3.10\n"
 
 
-def test_read_version_list_with_repeats_and_factors(tmp_path, run_line):
+def test_read_version_list_with_repeats_and_factors(chdir, tmp_path, run_line):
     toxini = tmp_path / "tox.ini"
 
     toxini.write_text(
@@ -59,7 +58,7 @@ def test_read_version_list_with_repeats_and_factors(tmp_path, run_line):
         )
     )
 
-    with contextlib.chdir(tmp_path):
+    with chdir(tmp_path):
         result = run_line("mddj read tox list-versions")
 
     assert result.stdout == "3.5\n3.6\n3.7\n3.8\n3.9\n3.10\n"
