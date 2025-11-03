@@ -14,7 +14,8 @@ def test_write_table_key(tmp_path):
             [project]
             version = "1.0.0"
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     write_result = write_toml_value(pyproject, "project.version", "1.1.0")
@@ -35,7 +36,8 @@ def test_write_inline_table_key(tmp_path):
             """\
             project = {version = "1.0.0"}
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     write_result = write_toml_value(pyproject, "project.version", "1.1.0")
@@ -55,7 +57,8 @@ def test_write_at_top_level(tmp_path):
             """\
             version = "1.0.0"
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     write_result = write_toml_value(config, "version", "1.1.0")
@@ -78,7 +81,8 @@ def test_write_array_element(tmp_path):
                 "--okay",
             ]
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     write_result = write_toml_value(config, "flags.0", "--quiet")
@@ -102,7 +106,8 @@ def test_write_aot_table(tmp_path):
             [[projects]]
             version = "1.0.0"
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     write_result = write_toml_value(config, "projects.0.version", "1.1.0")
@@ -129,7 +134,8 @@ def test_top_level_key_must_be_str(tmp_path):
             [project]
             version = "1.0.0"
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with pytest.raises(
@@ -147,7 +153,8 @@ def test_terminal_non_string_value_error(tmp_path):
             [project]
             version = ["1.0.0"]
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with pytest.raises(ValueError, match="TOML path terminated in a non-string value"):
@@ -163,7 +170,8 @@ def test_scalar_value_at_destination(tmp_path):
             [foo]
             bar = "1.0.0"
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with pytest.raises(
@@ -182,7 +190,8 @@ def test_traversal_crosses_scalar_value(tmp_path):
             [foo]
             bar = "1.0.0"
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with pytest.raises(

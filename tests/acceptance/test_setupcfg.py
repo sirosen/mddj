@@ -19,9 +19,12 @@ def test_read_python_requires(chdir, tmp_path, run_line, capfd):
             [options]
             python_requires = >=3.10
             """
-        )
+        ),
+        encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text("from setuptools import setup; setup()\n")
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
     (tmp_path / "foopkg.py").touch()
 
     with chdir(tmp_path):
@@ -49,9 +52,12 @@ def test_read_python_requires_with_full_build_output_shows_all_data(
             [options]
             python_requires = >=3.10
             """
-        )
+        ),
+        encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text("from setuptools import setup; setup()\n")
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
     (tmp_path / "foopkg.py").touch()
 
     with chdir(tmp_path):
@@ -80,9 +86,12 @@ def test_read_version_from_build(chdir, tmp_path, run_line):
             author = Foo
             author_email = foo@example.org
             """
-        )
+        ),
+        encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text("from setuptools import setup; setup()\n")
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
     (tmp_path / "foopkg.py").touch()
 
     with chdir(tmp_path):
@@ -99,7 +108,8 @@ def test_update_version_assignment(chdir, tmp_path, run_line, quote_char):
             [tool.mddj]
             write_version = "assign:setup.cfg:version"
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     setupcfg.write_text(
@@ -111,7 +121,8 @@ def test_update_version_assignment(chdir, tmp_path, run_line, quote_char):
             author = Foo
             author_email = foo@example.org
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with chdir(tmp_path):

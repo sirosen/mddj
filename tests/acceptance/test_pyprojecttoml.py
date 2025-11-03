@@ -22,7 +22,8 @@ def test_read_python_requires(chdir, tmp_path, run_line):
             ]
             requires-python = ">=3.11"
             """
-        )
+        ),
+        encoding="utf-8",
     )
     (tmp_path / "foopkg.py").touch()
 
@@ -48,7 +49,8 @@ def test_update_version_assignment(chdir, tmp_path, run_line, quote_char):
               {{ name = "Foo", email = "foo@example.org" }},
             ]
             """
-        )
+        ),
+        encoding="utf-8",
     )
 
     with chdir(tmp_path):
@@ -87,9 +89,10 @@ def test_read_version_from_pyproject(chdir, tmp_path, run_line):
               { name = "Foo", email = "foo@example.org" },
             ]
             """
-        )
+        ),
+        encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").write_text("")
+    (tmp_path / "foopkg.py").write_text("", encoding="utf-8")
 
     with chdir(tmp_path):
         run_line("mddj read version", search_stdout=r"^8\.0\.7$")
@@ -128,9 +131,10 @@ def test_read_version_attribute_from_pyproject(
               {{ name = "Foo", email = "foo@example.org" }},
             ]
             """
-        )
+        ),
+        encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").write_text("")
+    (tmp_path / "foopkg.py").write_text("", encoding="utf-8")
 
     with chdir(tmp_path):
         run_line(
@@ -165,9 +169,10 @@ def test_read_version_attribute_from_pyproject_fails_due_to_type(
               {{ name = "Foo", email = "foo@example.org" }},
             ]
             """
-        )
+        ),
+        encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").write_text("")
+    (tmp_path / "foopkg.py").write_text("", encoding="utf-8")
 
     with chdir(tmp_path):
         run_line(
