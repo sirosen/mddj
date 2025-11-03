@@ -16,11 +16,11 @@ def write_simple_assignment(
         path = pathlib.Path(path)
 
     line_pattern = re.compile(rf"^\s*{re.escape(key)}\s*=\s*(.*)$")
-    with path.open("r") as fp:
+    with path.open("r", encoding="utf-8") as fp:
         content = fp.readlines()
 
     old_value = None
-    with path.open("w") as fp:
+    with path.open("w", encoding="utf-8") as fp:
         for line in content:
             if m := line_pattern.match(line):
                 old_value = m.group(1)
@@ -98,7 +98,7 @@ def write_toml_value(
         # mypy flags this, but we've validated the key type against the container type
         # above -- the narrowed type info is simply not retained
         write_container[key] = write_value  # type: ignore[index]
-        with path.open("w") as write_file_descriptor:
+        with path.open("w", encoding="utf-8") as write_file_descriptor:
             tomlkit.dump(doc, write_file_descriptor)
         return old_value.value
     else:
