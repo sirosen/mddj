@@ -1,8 +1,8 @@
 import click
 
 from mddj.cli.state import CommandState, common_args
-from mddj.config import WriteVersionAssignConfig
-from mddj.writers import write_simple_assignment
+from mddj.config import WriteVersionAssignConfig, WriteVersionTomlConfig
+from mddj.writers import write_simple_assignment, write_toml_value
 
 
 @click.command("version")
@@ -14,7 +14,11 @@ def write_version(*, new_version: str, state: CommandState) -> None:
     version_config = config.write_version_config
     if isinstance(version_config, WriteVersionAssignConfig):
         result = write_simple_assignment(
-            version_config.path, version_config.key, new_version
+            version_config.file_path, version_config.key, new_version
+        )
+    elif isinstance(version_config, WriteVersionTomlConfig):
+        result = write_toml_value(
+            version_config.file_path, version_config.toml_path, new_version
         )
     else:
         raise NotImplementedError(

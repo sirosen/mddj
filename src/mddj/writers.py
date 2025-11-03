@@ -67,20 +67,12 @@ def write_toml_value(
     if is_toml_mapping(write_container):
         if isinstance(key, str):
             old_value = write_container[key]
-
-            def _do_write() -> None:
-                write_container[key] = value
-
         else:
             msg = "TOML traversal found subtable, but final key in path was an int."
             raise ValueError(msg)
     elif is_toml_array(write_container):
         if isinstance(key, int):
             old_value = write_container[key]
-
-            def _do_write() -> None:
-                write_container[key] = value
-
         else:
             msg = "TOML traversal found subtable, but final key in path was a string."
             raise ValueError(msg)
@@ -94,7 +86,18 @@ def write_toml_value(
     if old_value.value == value:
         return None
     elif isinstance(old_value, tomlkit.items.String):
-        _do_write()
+        # check string quoting style (tomlkit does not appear to offer a better API
+        # for this)
+        if isinstance(
+            old_value, tomlkit.items.String
+        ) and old_value.as_string().startswith("'"):
+            write_value = tomlkit.string(value, literal=True)
+        else:
+            write_value = tomlkit.string(value)
+
+        # mypy flags this, but we've validated the key type against the container type
+        # above -- the narrowed type info is simply not retained
+        write_container[key] = write_value  # type: ignore[index]
         with path.open("w") as write_file_descriptor:
             tomlkit.dump(doc, write_file_descriptor)
         return old_value.value

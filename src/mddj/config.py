@@ -1,21 +1,58 @@
 import dataclasses
 import functools
 import pathlib
+import sys
+import typing as t
 
 import tomlkit
 
-_WRITE_VERSION_MODES = ("assign",)
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+_WRITE_VERSION_MODES = ("assign", "toml")
+
+
+WriteVersionConfig: t.TypeAlias = t.Union[
+    "WriteVersionTomlConfig", "WriteVersionAssignConfig"
+]
 
 
 @dataclasses.dataclass
-class WriteVersionConfig:
-    pass
+class WriteVersionTomlConfig:
+    file_path: pathlib.Path
+    toml_path: str
+
+    @classmethod
+    def parse(cls, config_str: str) -> Self:
+        if ":" in config_str:
+            file_path, _, toml_path = config_str.partition(":")
+            file_path = file_path.strip()
+            toml_path = toml_path.strip()
+        else:
+            file_path = "pyproject.toml"
+            toml_path = config_str.strip()
+
+        return cls(file_path=pathlib.Path(file_path), toml_path=toml_path)
 
 
 @dataclasses.dataclass
-class WriteVersionAssignConfig(WriteVersionConfig):
-    path: pathlib.Path
+class WriteVersionAssignConfig:
+    file_path: pathlib.Path
     key: str
+
+    @classmethod
+    def parse(cls, config_str: str) -> Self:
+        if ":" in config_str:
+            file_path, _, key = config_str.partition(":")
+            file_path = file_path.strip()
+            key = key.strip()
+        else:
+            file_path = "pyproject.toml"
+            key = config_str.strip()
+
+        return cls(file_path=pathlib.Path(file_path), key=key)
 
 
 @dataclasses.dataclass
@@ -35,22 +72,10 @@ class ConfigData:
                 f"Please choose one of {_WRITE_VERSION_MODES}"
             )
 
-        if write_version_mode == "assign":
-            if ":" in write_version_value:
-                (
-                    write_version_path,
-                    _,
-                    write_version_value,
-                ) = write_version_value.partition(":")
-                write_version_path = write_version_path.strip()
-            else:
-                write_version_path = "pyproject.toml"
-            write_version_value = write_version_value.strip()
-
-            return WriteVersionAssignConfig(
-                path=pathlib.Path(write_version_path),
-                key=write_version_value,
-            )
+        if write_version_mode == "toml":
+            return WriteVersionTomlConfig.parse(write_version_value)
+        elif write_version_mode == "assign":
+            return WriteVersionAssignConfig.parse(write_version_value)
         else:
             raise NotImplementedError(
                 "Internal error. "
@@ -60,7 +85,7 @@ class ConfigData:
 
 def _default_config() -> ConfigData:
     return ConfigData(
-        write_version="assign: pyproject.toml: version",
+        write_version="toml: pyproject.toml: project.version",
     )
 
 
