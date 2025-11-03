@@ -59,7 +59,7 @@ def write_toml_value(
         msg = "Cannot traverse an empty TOML path."
         raise ValueError(msg)
 
-    with path.open("rb") as read_file_descriptor:
+    with path.open("r", encoding="utf-8") as read_file_descriptor:
         doc = tomlkit.load(read_file_descriptor)
 
     write_container, key = _traverse_toml_path_to_write_point(doc, target_path)
