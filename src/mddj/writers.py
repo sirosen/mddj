@@ -86,11 +86,10 @@ def write_toml_value(
     if old_value.value == value:
         return None
     elif isinstance(old_value, tomlkit.items.String):
-        # check string quoting style (tomlkit does not appear to offer a better API
-        # for this)
-        if isinstance(
-            old_value, tomlkit.items.String
-        ) and old_value.as_string().startswith("'"):
+        # check string quoting style
+        # update when the change for https://github.com/python-poetry/tomlkit/issues/443
+        # is released
+        if old_value._t.is_literal():
             write_value = tomlkit.string(value, literal=True)
         else:
             write_value = tomlkit.string(value)
