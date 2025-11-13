@@ -226,3 +226,31 @@ def test_read_version_from_pyproject_ignores_malformed_tool_config(
 
     with tmpdir.as_cwd():
         run_line("mddj read version", search_stdout=r"^8\.0\.7$")
+
+
+def test_read_dependencies(chdir, tmp_path, run_line):
+    pyproject = tmp_path / "pyproject.toml"
+
+    pyproject.write_text(
+        d(
+            """\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
+
+            [project]
+            name = "foopkg"
+            version = "1.0.0"
+            authors = [
+              { name = "Foo", email = "foo@example.org" },
+            ]
+            dependencies = ["foo", "bar<2"]
+            """
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "foopkg.py").touch()
+
+    with chdir(tmp_path):
+        result = run_line("mddj read dependencies")
+        assert result.stdout == "foo\nbar<2\n"
