@@ -30,7 +30,7 @@ def run_line(cli_runner):
         search_stderr=None,
         env=None,
     ):
-        from mddj import main
+        from mddj._cli import main
 
         # split line into args and confirm line starts with "mddj"
         args = shlex.split(line) if isinstance(line, str) else line

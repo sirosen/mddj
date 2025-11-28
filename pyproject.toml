@@ -41,7 +41,7 @@ source = "https://github.com/sirosen/mddj"
 changelog = "https://github.com/sirosen/mddj/blob/main/CHANGELOG.md"
 
 [project.scripts]
-mddj = "mddj.cli:main"
+mddj = "mddj._cli:main"
 
 
 [tool.coverage.run]

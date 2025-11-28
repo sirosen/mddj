@@ -11,8 +11,8 @@ import build.util
 import pyproject_hooks
 import tomlkit
 
-from mddj._compat import metadata
-from mddj._types import TomlValue, is_toml_array, is_toml_mapping
+from ._compat import metadata
+from ._types import TomlValue, is_toml_array, is_toml_mapping
 
 
 class ToxReaderError(RuntimeError):

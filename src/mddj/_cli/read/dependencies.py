@@ -2,9 +2,9 @@ import pathlib
 
 import click
 
-from mddj._types import is_toml_array
-from mddj.cli.state import CommandState, common_args
-from mddj.readers import read_pyproject_toml_value
+from mddj._cli.state import CommandState, common_args
+from mddj._internal import _readers
+from mddj._internal._types import is_toml_array
 
 
 @click.command("dependencies")
@@ -24,7 +24,9 @@ def read_dependencies(*, state: CommandState) -> None:
 
 def _get_dependencies_pyproject(pyproject_path: pathlib.Path) -> list[str] | None:
     try:
-        value = read_pyproject_toml_value(pyproject_path, "project", "dependencies")
+        value = _readers.read_pyproject_toml_value(
+            pyproject_path, "project", "dependencies"
+        )
     except (FileNotFoundError, LookupError):
         return None
 

@@ -1,6 +1,6 @@
 import click
 
-from mddj.cli.state import CommandState, common_args
+from mddj._cli.state import CommandState, common_args
 
 from .version import write_version
 
