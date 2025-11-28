@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["flit-core>=3.11"]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "mddj"
@@ -43,6 +43,19 @@ changelog = "https://github.com/sirosen/mddj/blob/main/CHANGELOG.md"
 [project.scripts]
 mddj = "mddj._cli:main"
 
+
+[tool.flit.sdist]
+include = ["CHANGELOG.md", "tests/**/*.py", "tox.ini", ".flake8", "justfile"]
+exclude = [".*", "src/**/.*"]
+
+
+[tool.check-sdist]
+git-only = ["RELEASING.md", ".gitignore"]
+
+# remove default-ignore and sdist-only after check-sdist is fixed
+# ref: https://github.com/henryiii/check-sdist/pull/130
+default_ignore = false
+sdist-only = ["*.dist-info"]
 
 [tool.coverage.run]
 parallel = true

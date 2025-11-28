@@ -1,7 +1,10 @@
 version := `uvx --from "." mddj read version`
 
 build:
-    uvx --from build pyproject-build .
+    uv build
+
+check-sdist:
+    uvx check-sdist --inject-junk
 
 publish: build
     uvx flit publish
