@@ -4,6 +4,11 @@ Changelog
 .. Unreleased
 .. ----------
 
+0.4.1
+-----
+
+- Update project documentation
+
 0.4.0
 -----
 
