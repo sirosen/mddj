@@ -10,6 +10,9 @@ class TomlDocumentCache:
         self._cache: dict[pathlib.Path, tomlkit.TOMLDocument] = {}
 
     def load(self, path: pathlib.Path) -> tomlkit.TOMLDocument:
+        if not path.is_absolute():
+            raise ValueError("Cached loads must use absolute paths for consistency.")
+
         if path not in self._cache:
             with path.open("rb") as fp:
                 data = tomlkit.load(fp)

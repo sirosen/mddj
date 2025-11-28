@@ -58,5 +58,9 @@ class DJ:
     @functools.cached_property
     def write(self) -> Writer:
         """A Writer configured via this DJ."""
-        config = WriterConfig.load_from_toml(self.pyproject_path)
+        config = WriterConfig.load_from_toml(
+            project_directory=self.project_directory,
+            pyproject_path=self.pyproject_path,
+            document_cache=self._document_cache,
+        )
         return Writer(config, document_cache=self._document_cache)

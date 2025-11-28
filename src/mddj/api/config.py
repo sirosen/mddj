@@ -7,6 +7,8 @@ import pathlib
 import sys
 import typing as t
 
+from .._internal import _cached_toml
+
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
@@ -70,17 +72,23 @@ class WriterConfig:
     Configuration for a metadata writer.
     """
 
+    project_directory: pathlib.Path
     write_version: str = "toml: pyproject.toml: project.version"
 
     @classmethod
-    def load_from_toml(cls, pyproject_path: pathlib.Path) -> Self:
+    def load_from_toml(
+        cls,
+        *,
+        project_directory: pathlib.Path,
+        pyproject_path: pathlib.Path,
+        document_cache: _cached_toml.TomlDocumentCache,
+    ) -> Self:
         import tomlkit
 
         if not pyproject_path.exists():
-            return cls()
+            return cls(project_directory=project_directory)
 
-        with pyproject_path.open("rb") as f:
-            data = tomlkit.load(f)
+        data = document_cache.load(pyproject_path)
 
         try:
             tool_table = data["tool"]
@@ -94,9 +102,9 @@ class WriterConfig:
             if not isinstance(write_version, str):
                 raise KeyError("'tool.mddj.write_version' must be a str")
         except KeyError:
-            return cls()
+            return cls(project_directory=project_directory)
 
-        return cls(write_version=write_version)
+        return cls(project_directory=project_directory, write_version=write_version)
 
     @functools.cached_property
     def write_version_settings(self) -> WriteVersionSettings:

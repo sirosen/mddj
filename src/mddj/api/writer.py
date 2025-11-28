@@ -35,21 +35,18 @@ class Writer:
         that this means that the writer is not correctly configured for the project.
         """
         write_version_settings = self.config.write_version_settings
+        file_path = self.config.project_directory / write_version_settings.file_path
 
         if isinstance(write_version_settings, WriteVersionAssignSettings):
             result = _writers.write_simple_assignment(
-                write_version_settings.file_path,
-                write_version_settings.key,
-                new_version,
+                file_path, write_version_settings.key, new_version
             )
         elif isinstance(write_version_settings, WriteVersionTomlSettings):
             return _writers.write_toml_value(
-                write_version_settings.file_path,
+                file_path,
                 write_version_settings.toml_path,
                 new_version,
-                loaded_document=self._document_cache.load(
-                    write_version_settings.file_path
-                ),
+                loaded_document=self._document_cache.load(file_path),
             )
         else:
             raise NotImplementedError(

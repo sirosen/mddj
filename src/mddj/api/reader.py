@@ -43,8 +43,8 @@ class Reader:
     def _pyproject_toml_document(self) -> tomlkit.TOMLDocument:
         return self._document_cache.load(self.config.pyproject_path)
 
-    @functools.cached_property
-    def _version(self) -> str:
+    def version(self) -> str:
+        """Get the version of the project."""
         try:
             return str(
                 _readers.read_pyproject_toml_value(
@@ -53,10 +53,6 @@ class Reader:
             )
         except (FileNotFoundError, LookupError):
             return str(self._wheel_metadata.get("Version"))
-
-    def version(self) -> str:
-        """Get the version of the project."""
-        return self._version
 
     @functools.cached_property
     def _requires_python(self) -> str:
