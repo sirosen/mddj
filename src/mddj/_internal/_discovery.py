@@ -4,12 +4,8 @@ import pathlib
 import typing as t
 
 
-class DiscoveryError(RuntimeError):
-    pass
-
-
-def discover_project_dir() -> pathlib.Path:
-    for directory, dir_contents in _vcs_bounded_ancestors_with_contents():
+def discover_project_dir(start_dir: pathlib.Path) -> pathlib.Path:
+    for directory, dir_contents in _vcs_bounded_ancestors_with_contents(start_dir):
         # Rule 1: the first ancestor dir with a `pyproject.toml`
         if "pyproject.toml" in dir_contents:
             return directory
@@ -31,14 +27,16 @@ def discover_project_dir() -> pathlib.Path:
     if "setup.py" in dir_contents:
         return directory
 
-    raise DiscoveryError(
+    raise LookupError(
         "mddj could not find the project root. "
         "Ensure you are running from a subdirectory of a Python package source dir."
     )
 
 
-def _vcs_bounded_ancestors_with_contents() -> t.Iterator[tuple[pathlib.Path, set[str]]]:
-    for d in _ancestors():
+def _vcs_bounded_ancestors_with_contents(
+    start_dir: pathlib.Path,
+) -> t.Iterator[tuple[pathlib.Path, set[str]]]:
+    for d in _ancestors(start_dir):
         dir_contents = {p.name for p in d.iterdir()}
         if dir_contents.intersection((".git", ".hg", ".svn")):
             yield d, dir_contents
@@ -46,7 +44,6 @@ def _vcs_bounded_ancestors_with_contents() -> t.Iterator[tuple[pathlib.Path, set
         yield d, dir_contents
 
 
-def _ancestors() -> t.Iterator[pathlib.Path]:
-    cwd = pathlib.Path.cwd()
-    yield cwd
-    yield from cwd.parents
+def _ancestors(start_dir: pathlib.Path) -> t.Iterator[pathlib.Path]:
+    yield start_dir
+    yield from start_dir.parents

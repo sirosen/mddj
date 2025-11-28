@@ -1,6 +1,6 @@
 import click
 
-from mddj.cli.state import CommandState, common_args
+from mddj._cli.state import CommandState, common_args
 
 from .list_versions import tox_list_versions
 from .min_version import tox_min_version

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Introduce `mddj.api`, a new subpackage which provides for library-style usage,
+  as an API.
+
 ## 0.3.0
 
 - `mddj write version` now uses a round-trip TOML parser (`tomlkit`) to update

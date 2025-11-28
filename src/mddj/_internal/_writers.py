@@ -5,8 +5,8 @@ import re
 
 import tomlkit
 
-from mddj._toml_path import parse_toml_path
-from mddj._types import TomlValue, is_toml_array, is_toml_mapping, is_toml_table
+from ._toml_path import parse_toml_path
+from ._types import TomlValue, is_toml_array, is_toml_mapping, is_toml_table
 
 
 def write_simple_assignment(
@@ -45,7 +45,9 @@ def write_toml_value(
     path: str | pathlib.Path,
     target: str,
     value: str,
-) -> str | None:
+    *,
+    loaded_document: tomlkit.TOMLDocument | None = None,
+) -> str:
     """
     Write a value to a given target (as a string) in a TOML file.
 
@@ -59,8 +61,11 @@ def write_toml_value(
         msg = "Cannot traverse an empty TOML path."
         raise ValueError(msg)
 
-    with path.open("r", encoding="utf-8") as read_file_descriptor:
-        doc = tomlkit.load(read_file_descriptor)
+    if loaded_document is not None:
+        doc = loaded_document
+    else:
+        with path.open("r", encoding="utf-8") as read_file_descriptor:
+            doc = tomlkit.load(read_file_descriptor)
 
     write_container, key = _traverse_toml_path_to_write_point(doc, target_path)
 
@@ -69,22 +74,22 @@ def write_toml_value(
             old_value = write_container[key]
         else:
             msg = "TOML traversal found subtable, but final key in path was an int."
-            raise ValueError(msg)
+            raise LookupError(msg)
     elif is_toml_array(write_container):
         if isinstance(key, int):
             old_value = write_container[key]
         else:
             msg = "TOML traversal found subtable, but final key in path was a string."
-            raise ValueError(msg)
+            raise LookupError(msg)
     else:
         msg = (
             "Nontrivial TOML write path must terminate in a table or array, "
             "got scalar."
         )
-        raise ValueError(msg)
+        raise LookupError(msg)
 
     if old_value.value == value:
-        return None
+        return value
     elif isinstance(old_value, tomlkit.items.String):
         # check string quoting style
         # update when the change for https://github.com/python-poetry/tomlkit/issues/443
@@ -102,7 +107,7 @@ def write_toml_value(
         return old_value.value
     else:
         msg = "TOML path terminated in a non-string value."
-        raise ValueError(msg)
+        raise LookupError(msg)
 
 
 def _traverse_toml_path_to_write_point(
@@ -133,7 +138,7 @@ def _traverse_toml_path_to_write_point(
     for key in remainder:
         if not (is_toml_array(element) or is_toml_table(element)):
             msg = f"TOML path attempted to traverse scalar at {debug_path}"
-            raise ValueError(msg)
+            raise LookupError(msg)
 
         if isinstance(key, int) and is_toml_array(element):  # slyp: disable=W200
             element = element[key]
@@ -144,7 +149,7 @@ def _traverse_toml_path_to_write_point(
                 "Error traversing TOML document. "
                 f"Encountered improper type at {debug_path}"
             )
-            raise ValueError(msg)
+            raise LookupError(msg)
         debug_path.append(key)
 
     return element, final_key

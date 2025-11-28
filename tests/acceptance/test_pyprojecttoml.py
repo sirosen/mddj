@@ -4,7 +4,8 @@ from textwrap import dedent as d
 import pytest
 
 
-def test_read_python_requires(chdir, tmp_path, run_line):
+@pytest.mark.parametrize("lower_bound", (True, False))
+def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -28,7 +29,12 @@ def test_read_python_requires(chdir, tmp_path, run_line):
     (tmp_path / "foopkg.py").touch()
 
     with chdir(tmp_path):
-        run_line("mddj read requires-python", search_stdout=r"^>=3\.11$")
+        cmd = ["mddj", "read", "requires-python"]
+        if lower_bound:
+            cmd.append("--lower-bound")
+
+        expect_result = r"^3\.11$" if lower_bound else r"^>=3\.11$"
+        run_line(cmd, search_stdout=expect_result)
 
 
 @pytest.mark.parametrize("quote_char", ('"', "'"))

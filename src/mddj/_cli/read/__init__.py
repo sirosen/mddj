@@ -1,6 +1,6 @@
 import click
 
-from mddj.cli.state import CommandState, common_args
+from mddj._cli.state import CommandState, common_args
 
 from .dependencies import read_dependencies
 from .requires_python import read_requires_python

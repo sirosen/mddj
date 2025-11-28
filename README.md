@@ -28,6 +28,40 @@ pipx install mddj
 
 ## Usage
 
+### API
+
+*coming in the next release*
+
+`mddj` supports usage as a library!
+
+All usage should flow through the `mddj.api` module, and in particular the `DJ` class.
+Undocumented interfaces are considered private.
+
+Here's how you can instantiate one and read the project version:
+
+```python
+from mddj.api import DJ
+
+dj = DJ()
+print(dj.read.version())
+```
+
+The provided APIs closely mirror the CLI:
+
+- `DJ.project_directory`: the path to the discovered project dir
+- `DJ.pyproject_path`: the path to the discovered `pyproject.toml` file
+- `DJ.read.version()`: get the project version
+- `DJ.read.requires_python(lower_bound=False)`: get the project python version
+  requirement, optionally parsed to remove version comparators
+- `DJ.read.dependencies()`: get the project package dependencies
+- `DJ.read.tox.list_python_versions()`: list the tox-tested Python versions, as discovered via env listing
+- `DJ.writer.version(new_version)`: set a new version, obeying any configuration for where to write
+
+All of these APIs cache data and prefer to access static metadata in
+`pyproject.toml` if at all possible. There is no API to clear caches -- the
+only way to refresh state if the underlying data changes is to instantiate a
+new `DJ`.
+
 ### Env Vars
 
 #### Build Isolation

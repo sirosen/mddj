@@ -2,7 +2,7 @@ from importlib.metadata import version
 
 import click
 
-from mddj.cli.state import CommandState, common_args
+from mddj._cli.state import CommandState, common_args
 
 
 @click.command("version")

@@ -98,6 +98,41 @@ def test_read_version_from_build(chdir, tmp_path, run_line):
         run_line("mddj read version", search_stdout=r"^1\.0\.0$")
 
 
+def test_read_version_from_build_with_pyproject_present(chdir, tmp_path, run_line):
+    setupcfg = tmp_path / "setup.cfg"
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        d(
+            """\
+            [project]
+            name = "foopkg"
+            dynamic = ["version"]
+            """
+        )
+    )
+
+    setupcfg.write_text(
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
+
+            author = Foo
+            author_email = foo@example.org
+            """
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
+    (tmp_path / "foopkg.py").touch()
+
+    with chdir(tmp_path):
+        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
+
+
 @pytest.mark.parametrize("quote_char", ("", '"', "'"))
 def test_update_version_assignment(chdir, tmp_path, run_line, quote_char):
     setupcfg = tmp_path / "setup.cfg"

@@ -1,6 +1,6 @@
 import pytest
 
-from mddj._toml_path import ParseError, parse_toml_path
+from mddj._internal._toml_path import ParseError, parse_toml_path
 
 
 @pytest.mark.parametrize(
