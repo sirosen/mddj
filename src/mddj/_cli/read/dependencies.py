@@ -12,7 +12,9 @@ from mddj._internal._types import is_toml_array
 def read_dependencies(*, state: CommandState) -> None:
     """Read the dependencies of the current project."""
     # first, try reading from pyproject.toml
-    dependencies: list[str] | None = _get_dependencies_pyproject(state.pyproject_path)
+    dependencies: list[str] | None = _get_dependencies_pyproject(
+        state.dj.pyproject_path
+    )
 
     # if that fails, fallback to trying to read from build metadata
     if dependencies is None:
@@ -37,6 +39,5 @@ def _get_dependencies_pyproject(pyproject_path: pathlib.Path) -> list[str] | Non
 
 
 def _get_dependencies_build(state: CommandState) -> list[str]:
-    data = state.read_metadata()
-    value = data.get_all("Requires-Dist")
+    value = state.dj.read._wheel_metadata.get_all("Requires-Dist")
     return [str(d) for d in value]
