@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 
-from .._internal import _compat, _readers
+from .._internal import _compat, _readers, _types
 from .config import ReaderConfig
 
 
@@ -76,6 +76,22 @@ class Reader:
         if lower_bound:
             return _requires_python_lower_bound(self._requires_python)
         return self._requires_python
+
+    @functools.cached_property
+    def _dependencies(self) -> tuple[str, ...]:
+        try:
+            value = _readers.read_pyproject_toml_value(
+                self.config.pyproject_path, "project", "dependencies"
+            )
+        except (FileNotFoundError, LookupError):
+            value = None
+        if _types.is_toml_array(value):
+            return tuple(str(d) for d in value)
+
+        return tuple(str(d) for d in self._wheel_metadata.get_all("Requires-Dist"))
+
+    def dependencies(self) -> tuple[str, ...]:
+        return self._dependencies
 
 
 def _requires_python_lower_bound(req: str) -> str:
