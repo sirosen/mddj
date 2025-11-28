@@ -46,30 +46,42 @@ class Reader:
     def _pyproject_toml_document(self) -> tomlkit.TOMLDocument:
         return self._document_cache.load(self.config.pyproject_path)
 
-    def version(self) -> str:
-        """Get the version of the project."""
+    @functools.cached_property
+    def _pyproject_dynamic(self) -> tuple[str, ...]:
         try:
-            return str(
-                _readers.read_pyproject_toml_value(
-                    self._pyproject_toml_document, "project", "version"
-                )
+            value = _readers.read_pyproject_toml_value(
+                self._pyproject_toml_document, "project", "dynamic"
             )
         except (FileNotFoundError, LookupError):
-            return str(self._wheel_metadata.get("Version"))
+            return ()
+        if _types.is_toml_array(value) and all(isinstance(x, str) for x in value):
+            return tuple(value)
+        raise LookupError("project.dynamic must be an array of strings when present")
+
+    def _read_static(self, key: str) -> object | None:
+        if key in self._pyproject_dynamic:
+            return None
+
+        try:
+            return _readers.read_pyproject_toml_value(
+                self._pyproject_toml_document, "project", key
+            )
+        except (FileNotFoundError, LookupError):
+            return None
+
+    def version(self) -> str:
+        """Get the version of the project."""
+        value = self._read_static("version")
+        if value is not None:
+            return str(value)
+        return str(self._wheel_metadata.get("Version"))
 
     @functools.cached_property
     def _requires_python(self) -> str:
-        # first, try reading from pyproject.toml
-        try:
-            return str(
-                _readers.read_pyproject_toml_value(
-                    self._pyproject_toml_document, "project", "requires-python"
-                )
-            )
-        except (FileNotFoundError, LookupError):
-            pass
+        value = self._read_static("requires-python")
+        if value is not None:
+            return str(value)
 
-        # if that fails, fallback to trying to read from build metadata
         value = self._wheel_metadata.get("Requires-Python")
         if value is None:
             raise LookupError("No Requires-Python data found")
@@ -89,12 +101,8 @@ class Reader:
 
     @functools.cached_property
     def _dependencies(self) -> tuple[str, ...]:
-        try:
-            value = _readers.read_pyproject_toml_value(
-                self._pyproject_toml_document, "project", "dependencies"
-            )
-        except (FileNotFoundError, LookupError):
-            value = None
+        value: object | None = self._read_static("dependencies")
+
         if _types.is_toml_array(value):
             return tuple(str(d) for d in value)
 
