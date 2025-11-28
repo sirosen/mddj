@@ -22,8 +22,8 @@ class ToxReader:
 
         >>> from mddj.api import DJ
         >>> dj = DJ()
-        >>> dj.read.tox.min_version()
-        '3.8'
+        >>> dj.read.tox.list_versions()
+        ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
     """
 
     @functools.cached_property
