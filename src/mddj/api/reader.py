@@ -1,12 +1,19 @@
 from __future__ import annotations
 
+import collections.abc
 import functools
+import pathlib
 
 import tomlkit
 
-from .._internal import _cached_toml, _compat, _readers, _types
+from .._internal import _cached_toml, _types
 from .config import ReaderConfig
 from .tox_reader import ToxReader
+
+try:
+    import importlib_metadata as _importlib_metadata
+except ImportError:
+    import importlib.metadata as _importlib_metadata
 
 
 class Reader:
@@ -35,8 +42,8 @@ class Reader:
         self.tox = ToxReader()
 
     @functools.cached_property
-    def _wheel_metadata(self) -> _compat.metadata.PackageMetadata:
-        return _readers.get_wheel_metadata(
+    def _wheel_metadata(self) -> _importlib_metadata.PackageMetadata:
+        return _get_wheel_metadata(
             self.config.project_directory,
             isolated=self.config.isolated_builds,
             quiet=self.config.capture_build_output,
@@ -49,7 +56,7 @@ class Reader:
     @functools.cached_property
     def _pyproject_dynamic(self) -> tuple[str, ...]:
         try:
-            value = _readers.read_pyproject_toml_value(
+            value = _read_pyproject_toml_value(
                 self._pyproject_toml_document, "project", "dynamic"
             )
         except (FileNotFoundError, LookupError):
@@ -63,7 +70,7 @@ class Reader:
             return None
 
         try:
-            return _readers.read_pyproject_toml_value(
+            return _read_pyproject_toml_value(
                 self._pyproject_toml_document, "project", key
             )
         except (FileNotFoundError, LookupError):
@@ -128,3 +135,52 @@ def _requires_python_lower_bound(req: str) -> str:
         raise ValueError("Found no lower bounds")
     else:
         return lower_bounds[0]
+
+
+def _get_wheel_metadata(
+    source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
+) -> _importlib_metadata.PackageMetadata:
+    """
+    Get metadata for wheel, either using the PEP 517 hook or by actually
+    doing a wheel build and examining the result.
+    """
+    import build.util
+    import pyproject_hooks
+
+    runner = pyproject_hooks.quiet_subprocess_runner
+    if not quiet:
+        runner = pyproject_hooks.default_subprocess_runner
+    return build.util.project_wheel_metadata(
+        source_dir, isolated=isolated, runner=runner
+    )
+
+
+def _read_pyproject_toml_value(
+    pyproject_data: tomlkit.TOMLDocument, *path: str | int
+) -> object:
+    """
+    Read an arbitrary value from 'pyproject.toml'
+    """
+    # traverse the TOML data structure
+    cursor: _types.TomlValue = pyproject_data
+    for subkey in path:
+        # pedantically enumerate the branches for static type checking to
+        # easily see the association between key and container types
+        if isinstance(subkey, str) and _types.is_toml_mapping(  # slyp: disable=W200
+            cursor
+        ):
+            cursor = cursor[subkey]
+        elif isinstance(subkey, int) and _types.is_toml_array(cursor):
+            cursor = cursor[subkey]
+        else:
+            message = f"Could not lookup '{path}' in pyproject.toml."
+            # str is a container and a scalar...
+            if isinstance(cursor, str) or not isinstance(
+                cursor, collections.abc.Container
+            ):
+                message = f"{message} Terminated in a non-container type."
+            else:
+                message = f"{message} Incorrect index type."
+            raise LookupError(message)
+
+    return cursor
