@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import functools
 
-from .._internal import _compat, _readers, _types
+import tomlkit
+
+from .._internal import _cached_toml, _compat, _readers, _types
 from .config import ReaderConfig
 
 
@@ -21,8 +23,13 @@ class Reader:
         '0.1.0'
     """
 
-    def __init__(self, config: ReaderConfig) -> None:
+    def __init__(
+        self,
+        config: ReaderConfig,
+        document_cache: _cached_toml.TomlDocumentCache | None = None,
+    ) -> None:
         self.config = config
+        self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
 
     @functools.cached_property
     def _wheel_metadata(self) -> _compat.metadata.PackageMetadata:
@@ -33,11 +40,15 @@ class Reader:
         )
 
     @functools.cached_property
+    def _pyproject_toml_document(self) -> tomlkit.TOMLDocument:
+        return self._document_cache.load(self.config.pyproject_path)
+
+    @functools.cached_property
     def _version(self) -> str:
         try:
             return str(
                 _readers.read_pyproject_toml_value(
-                    self.config.pyproject_path, "project", "version"
+                    self._pyproject_toml_document, "project", "version"
                 )
             )
         except (FileNotFoundError, LookupError):
@@ -53,7 +64,7 @@ class Reader:
         try:
             return str(
                 _readers.read_pyproject_toml_value(
-                    self.config.pyproject_path, "project", "requires-python"
+                    self._pyproject_toml_document, "project", "requires-python"
                 )
             )
         except (FileNotFoundError, LookupError):
@@ -81,7 +92,7 @@ class Reader:
     def _dependencies(self) -> tuple[str, ...]:
         try:
             value = _readers.read_pyproject_toml_value(
-                self.config.pyproject_path, "project", "dependencies"
+                self._pyproject_toml_document, "project", "dependencies"
             )
         except (FileNotFoundError, LookupError):
             value = None

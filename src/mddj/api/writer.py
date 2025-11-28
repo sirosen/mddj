@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .._internal import _writers
+from .._internal import _cached_toml, _writers
 from .config import WriterConfig, WriteVersionAssignSettings, WriteVersionTomlSettings
 
 
@@ -19,8 +19,13 @@ class Writer:
         '0.1.0'
     """
 
-    def __init__(self, config: WriterConfig) -> None:
+    def __init__(
+        self,
+        config: WriterConfig,
+        document_cache: _cached_toml.TomlDocumentCache | None = None,
+    ) -> None:
         self.config = config
+        self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
 
     def version(self, new_version: str) -> str:
         """
@@ -42,6 +47,9 @@ class Writer:
                 write_version_settings.file_path,
                 write_version_settings.toml_path,
                 new_version,
+                loaded_document=self._document_cache.load(
+                    write_version_settings.file_path
+                ),
             )
         else:
             raise NotImplementedError(

@@ -74,15 +74,14 @@ def _check_tox_version(tox_command: str) -> t.Literal[3, 4]:
         raise ToxReaderError("'tox --version' was not a recognized version.")
 
 
-def read_pyproject_toml_value(pyproject_path: pathlib.Path, *path: str | int) -> object:
+def read_pyproject_toml_value(
+    pyproject_data: tomlkit.TOMLDocument, *path: str | int
+) -> object:
     """
     Read an arbitrary value from 'pyproject.toml'
     """
-    with pyproject_path.open("rb") as fp:
-        data = tomlkit.load(fp)
-
     # traverse the TOML data structure
-    cursor: TomlValue = data
+    cursor: TomlValue = pyproject_data
     for subkey in path:
         # pedantically enumerate the branches for static type checking to
         # easily see the association between key and container types

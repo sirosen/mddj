@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import pathlib
 
-from .._internal import _discovery
+from .._internal import _cached_toml, _discovery
 from .config import DJConfig, ReaderConfig, WriterConfig
 from .reader import Reader
 from .writer import Writer
@@ -21,6 +21,7 @@ class DJ:
 
     def __init__(self, config: DJConfig | None = None) -> None:
         self.config = config or DJConfig()
+        self._document_cache = _cached_toml.TomlDocumentCache()
 
     @functools.cached_property
     def project_directory(self) -> pathlib.Path:
@@ -52,10 +53,10 @@ class DJ:
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
         )
-        return Reader(config)
+        return Reader(config, document_cache=self._document_cache)
 
     @functools.cached_property
     def write(self) -> Writer:
         """A Writer configured via this DJ."""
         config = WriterConfig.load_from_toml(self.pyproject_path)
-        return Writer(config)
+        return Writer(config, document_cache=self._document_cache)

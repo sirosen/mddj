@@ -45,6 +45,8 @@ def write_toml_value(
     path: str | pathlib.Path,
     target: str,
     value: str,
+    *,
+    loaded_document: tomlkit.TOMLDocument | None = None,
 ) -> str:
     """
     Write a value to a given target (as a string) in a TOML file.
@@ -59,8 +61,11 @@ def write_toml_value(
         msg = "Cannot traverse an empty TOML path."
         raise ValueError(msg)
 
-    with path.open("r", encoding="utf-8") as read_file_descriptor:
-        doc = tomlkit.load(read_file_descriptor)
+    if loaded_document is not None:
+        doc = loaded_document
+    else:
+        with path.open("r", encoding="utf-8") as read_file_descriptor:
+            doc = tomlkit.load(read_file_descriptor)
 
     write_container, key = _traverse_toml_path_to_write_point(doc, target_path)
 
