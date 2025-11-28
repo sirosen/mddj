@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0
+
 - Introduce `mddj.api`, a new subpackage which provides for library-style usage,
   as an API.
 

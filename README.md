@@ -30,12 +30,9 @@ pipx install mddj
 
 ### API
 
-*coming in the next release*
-
 `mddj` supports usage as a library!
 
 All usage should flow through the `mddj.api` module, and in particular the `DJ` class.
-Undocumented interfaces are considered private.
 
 Here's how you can instantiate one and read the project version:
 
