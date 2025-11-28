@@ -6,6 +6,7 @@ import tomlkit
 
 from .._internal import _cached_toml, _compat, _readers, _types
 from .config import ReaderConfig
+from .tox_reader import ToxReader
 
 
 class Reader:
@@ -30,6 +31,8 @@ class Reader:
     ) -> None:
         self.config = config
         self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
+
+        self.tox = ToxReader()
 
     @functools.cached_property
     def _wheel_metadata(self) -> _compat.metadata.PackageMetadata:
