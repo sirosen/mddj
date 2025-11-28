@@ -1,5 +1,9 @@
 version := `uvx --from "." mddj read version`
 
+serve-docs:
+    uvx --with 'tox-uv' tox r -e docs
+    python -m http.server 8000 -d docs/_build/html
+
 build:
     uv build
 

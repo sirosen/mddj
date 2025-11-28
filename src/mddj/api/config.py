@@ -32,8 +32,9 @@ class DJConfig:
     Configuration for a DJ object.
 
     Some values support having their defaults set via environment variables:
-    - `isolated_builds`: `MDDJ_ISOLATED_BUILDS`
-    - `capture_build_output`: `MDDJ_CAPTURE_BUILD_OUTPUT`
+
+    - ``isolated_builds``: ``MDDJ_ISOLATED_BUILDS``
+    - ``capture_build_output``: ``MDDJ_CAPTURE_BUILD_OUTPUT``
     """
 
     #: The starting directory for project dir discovery. Defaults to cwd.

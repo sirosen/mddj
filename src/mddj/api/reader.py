@@ -29,6 +29,8 @@ class Reader:
         >>> dj = DJ()
         >>> dj.read.version()
         '0.1.0'
+
+    :ivar tox: a :class:`ToxReader` provided by this reader
     """
 
     def __init__(
@@ -116,6 +118,7 @@ class Reader:
         return tuple(str(d) for d in self._wheel_metadata.get_all("Requires-Dist"))
 
     def dependencies(self) -> tuple[str, ...]:
+        """Get the dependencies for the project."""
         return self._dependencies
 
 

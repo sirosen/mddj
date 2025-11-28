@@ -31,8 +31,9 @@ class Writer:
         """
         Write a new version into the project metadata, returning the old version.
 
-        If no previous version can be found, a LookupError is raised, on the presumption
-        that this means that the writer is not correctly configured for the project.
+        If no previous version can be found, a ``LookupError`` is raised, on the
+        presumption that this means that the writer is not correctly configured for
+        the project.
         """
         write_version_settings = self.config.write_version_settings
         file_path = self.config.project_directory / write_version_settings.file_path

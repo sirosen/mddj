@@ -8,7 +8,7 @@ import sys
 
 
 class ToxReaderError(RuntimeError):
-    pass
+    """The class of errors which can be raised if ``tox`` data discovery fails."""
 
 
 class ToxReader:
@@ -72,6 +72,7 @@ class ToxReader:
         return tuple(line for line in output.splitlines() if line)
 
     def list_python_versions(self) -> list[str]:
+        """List the Python versions which appear in the list of tox environments."""
         versions = set()
         for envname in self._tox_listenvs:
             for part in envname.split("-"):
