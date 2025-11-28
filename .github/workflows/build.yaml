@@ -7,7 +7,7 @@ jobs:
   run-other-tox-env:
     strategy:
       matrix:
-        toxenv: [mypy, lint]
+        toxenv: [mypy, lint, lint_imports]
         py: ["3.13"]
 
     runs-on: ubuntu-latest

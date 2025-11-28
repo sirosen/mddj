@@ -57,6 +57,33 @@ git-only = ["RELEASING.md", ".gitignore"]
 default_ignore = false
 sdist-only = ["*.dist-info"]
 
+
+[tool.importlinter]
+root_package = "mddj"
+
+[[tool.importlinter.contracts]]
+name = "Cycles are forbidden"
+type = "acyclic_siblings"
+ancestors = ["mddj"]
+
+[[tool.importlinter.contracts]]
+name = "CLI uses API and API uses Internal (Layers)"
+type = "layers"
+layers = [
+  "mddj._cli",
+  "mddj.api",
+  "mddj._internal",
+]
+
+[[tool.importlinter.contracts]]
+name = "API Reader and Writer are Independent"
+type = "independence"
+modules = [
+  "mddj.api.reader",
+  "mddj.api.writer",
+]
+
+
 [tool.coverage.run]
 parallel = true
 source = ["mddj"]
