@@ -14,7 +14,7 @@ class TomlDocumentCache:
             raise ValueError("Cached loads must use absolute paths for consistency.")
 
         if path not in self._cache:
-            with path.open("rb") as fp:
+            with path.open("r", encoding="utf-8") as fp:
                 data = tomlkit.load(fp)
             self._cache[path] = data
         return self._cache[path]
