@@ -7,18 +7,13 @@ Your DJ of MetaData.
 
 -----
 
-**Table of Contents**
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Quickstart](#quickstart)
-- [License](#license)
-
 ## Overview
 
 A CLI for interacting with your python package metadata.
 
 Supports multiple packaging backends via a uniform interface.
+
+For full documentation, see the [docs site](https://mddj.readthedocs.io/en/latest/).
 
 ## Installation
 
