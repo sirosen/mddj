@@ -4,6 +4,9 @@ Changelog
 .. Unreleased
 .. ----------
 
+0.4.2
+-----
+
 - Add ``DJ.read.tox.min_python_version()``
 
 0.4.1

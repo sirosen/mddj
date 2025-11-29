@@ -12,7 +12,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "mddj"
-version = "0.4.1"
+version = "0.4.2"
 description = 'A CLI for extracting python metadata from packages'
 readme = "README.md"
 requires-python = ">=3.10"
