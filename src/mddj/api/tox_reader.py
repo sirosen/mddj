@@ -71,11 +71,29 @@ class ToxReader:
         output = subprocess.check_output([*self._tox_cmd, "--listenvs"], text=True)
         return tuple(line for line in output.splitlines() if line)
 
-    def list_python_versions(self) -> list[str]:
-        """List the Python versions which appear in the list of tox environments."""
+    @functools.cached_property
+    def _python_versions_in_envlist(self) -> tuple[str, ...]:
         versions = set()
         for envname in self._tox_listenvs:
             for part in envname.split("-"):
                 if match := re.match(r"py(\d)\.?(\d+)", part):
                     versions.add(match.group(1) + "." + match.group(2))
-        return list(versions)
+        return tuple(versions)
+
+    def list_python_versions(self) -> tuple[str, ...]:
+        """List the Python versions which appear in the list of tox environments."""
+        return self._python_versions_in_envlist
+
+    def min_python_version(self) -> str:
+        """
+        Get the minimum Python version which appears in the environment list.
+
+        Raises a ``LookupError`` if the list appears to be empty.
+        """
+        from packaging.version import Version
+
+        sorted_versions = sorted(Version(v) for v in self._python_versions_in_envlist)
+        if not sorted_versions:
+            raise LookupError("No tox version data found.")
+
+        return str(sorted_versions[0])

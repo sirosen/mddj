@@ -1,5 +1,4 @@
 import click
-from packaging.version import Version
 
 from mddj._cli.state import CommandState, common_args
 
@@ -8,8 +7,8 @@ from mddj._cli.state import CommandState, common_args
 @common_args
 def tox_min_version(*, state: CommandState) -> None:
     """Print the minimum version of python tested under tox."""
-    versions = state.dj.read.tox.list_python_versions()
-
-    if not versions:
-        raise RuntimeError("No tox version data found.")
-    click.echo(str(sorted(Version(v) for v in versions)[0]))
+    try:
+        click.echo(state.dj.read.tox.min_python_version())
+    except LookupError as e:
+        click.echo(str(e), err=True)
+        click.get_current_context().exit(1)
