@@ -1,7 +1,7 @@
 [dependency-groups]
 docs = [
   "sphinx<9",
-  "sphinx-issues<5",
+  "sphinx-issues<6",
   "furo==2024.7.18",
 ]
 
