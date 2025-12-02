@@ -13,15 +13,25 @@ See ``--help`` on each command for more detail on supported options.
 
 Show the version of ``mddj``.
 
+``mddj read dependencies``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Show the ``dependencies`` (``Requires-Dist``) field for the current project.
+
+``mddj read name``
+^^^^^^^^^^^^^^^^^^
+
+Show the ``name`` (``Name``) field for the current project.
+
 ``mddj read requires-python``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Show the ``requires_python`` field.
+Show the ``requires-python`` (``Requires-Python``) field for the current project.
 
 ``mddj read version``
 ^^^^^^^^^^^^^^^^^^^^^
 
-Show the ``version``.
+Show the ``version`` (``Version``) field for the current project.
 
 ``mddj read tox min-version``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

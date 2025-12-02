@@ -4,6 +4,8 @@ Changelog
 .. Unreleased
 .. ----------
 
+- Add ``DJ.read.name()`` and ``mddj read name``
+
 0.4.2
 -----
 
