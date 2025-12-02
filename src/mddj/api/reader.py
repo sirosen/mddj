@@ -78,20 +78,24 @@ class Reader:
         except (FileNotFoundError, LookupError):
             return None
 
+    def _lookup(self, project_fieldname: str, metadata_fieldname: str) -> object | None:
+        value = self._read_static(project_fieldname)
+        if value is not None:
+            return value
+        return self._wheel_metadata.get(  # type: ignore[no-any-return]
+            metadata_fieldname
+        )
+
+    def name(self) -> str:
+        return str(self._lookup("name", "Name"))
+
     def version(self) -> str:
         """Get the version of the project."""
-        value = self._read_static("version")
-        if value is not None:
-            return str(value)
-        return str(self._wheel_metadata.get("Version"))
+        return str(self._lookup("version", "Version"))
 
     @functools.cached_property
     def _requires_python(self) -> str:
-        value = self._read_static("requires-python")
-        if value is not None:
-            return str(value)
-
-        value = self._wheel_metadata.get("Requires-Python")
+        value = self._lookup("requires-python", "Requires-Python")
         if value is None:
             raise LookupError("No Requires-Python data found")
         return str(value)
