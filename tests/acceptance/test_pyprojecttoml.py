@@ -4,6 +4,33 @@ from textwrap import dedent as d
 import pytest
 
 
+@pytest.mark.parametrize("keyname", ["name", "version", "description"])
+def test_read_simple_project_attrs(chdir, tmp_path, run_line, keyname):
+    pyproject = tmp_path / "pyproject.toml"
+    toml_text = d(
+        """\
+        [project]
+        name = "mypkg"
+        version = "1.2.4"
+        description = "A very cool package"
+        """
+    )
+    pyproject.write_text(toml_text, encoding="utf-8")
+
+    expect_value = None
+    for line in toml_text.splitlines():
+        if line.startswith(keyname):
+            expect_value = line.strip().split('"')[1]
+            break
+    else:
+        pytest.fail(f"didn't find {keyname} in TOML data")
+
+    with chdir(tmp_path):
+        cmd = ["mddj", "read", keyname]
+
+        run_line(cmd, search_stdout=rf"^{re.escape(expect_value)}$")
+
+
 @pytest.mark.parametrize("lower_bound", (True, False))
 def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
     pyproject = tmp_path / "pyproject.toml"
