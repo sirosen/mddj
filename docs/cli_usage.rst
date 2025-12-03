@@ -13,10 +13,43 @@ See ``--help`` on each command for more detail on supported options.
 
 Show the version of ``mddj``.
 
+.. [[[cog
+.. import cog
+.. cog.outl()
+.. for var in [
+..     ("dependencies", "Requires-Dist"),
+..     ("description", "Summary"),
+..     ("keywords",),
+..     ("name",),
+..     ("requires-python",),
+..     ("version",),
+.. ]:
+..     name = var[0]
+..     dist_name = var[1] if len(var) > 1 else name.title()
+..     header = f"``mddj read {name}``"
+..     underline = "^" * len(header)
+..     cog.outl(header)
+..     cog.outl(underline)
+..     cog.outl()
+..     cog.outl(f"Show the ``{name}`` (``{dist_name}``) field for the current project.")
+..     cog.outl()
+..
+.. ]]]
+
 ``mddj read dependencies``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Show the ``dependencies`` (``Requires-Dist``) field for the current project.
+
+``mddj read description``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Show the ``description`` (``Summary``) field for the current project.
+
+``mddj read keywords``
+^^^^^^^^^^^^^^^^^^^^^^
+
+Show the ``keywords`` (``Keywords``) field for the current project.
 
 ``mddj read name``
 ^^^^^^^^^^^^^^^^^^
@@ -32,6 +65,8 @@ Show the ``requires-python`` (``Requires-Python``) field for the current project
 ^^^^^^^^^^^^^^^^^^^^^
 
 Show the ``version`` (``Version``) field for the current project.
+
+.. [[[end]]]
 
 ``mddj read tox min-version``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

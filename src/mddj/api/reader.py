@@ -93,6 +93,21 @@ class Reader:
         """Get the version of the project."""
         return str(self._lookup("version", "Version"))
 
+    def description(self) -> str:
+        return str(self._lookup("description", "Summary"))
+
+    @functools.cached_property
+    def _keywords(self) -> tuple[str, ...]:
+        value = self._lookup("keywords", "Keywords")
+        if _types.is_toml_array(value):  # pyproject.toml it's an array
+            return tuple(str(k) for k in value)
+        if isinstance(value, str):  # but in metadata it's a commasep str
+            return tuple(value.split(","))
+        return ()
+
+    def keywords(self) -> tuple[str, ...]:
+        return self._keywords
+
     @functools.cached_property
     def _requires_python(self) -> str:
         value = self._lookup("requires-python", "Requires-Python")
