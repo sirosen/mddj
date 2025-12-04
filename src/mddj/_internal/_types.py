@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import sys
 import typing as t
 
@@ -26,5 +27,11 @@ def is_toml_table(obj: t.Any) -> TypeIs[TomlTable]:
 
 def is_toml_mapping(obj: t.Any) -> TypeIs[TomlMapping]:
     return isinstance(
-        obj, (tomlkit.TOMLDocument, tomlkit.items.Table, tomlkit.items.InlineTable)
+        obj,
+        (
+            tomlkit.TOMLDocument,
+            tomlkit.items.Table,
+            tomlkit.items.InlineTable,
+            collections.abc.MutableMapping,
+        ),
     )
