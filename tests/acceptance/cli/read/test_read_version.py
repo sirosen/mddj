@@ -4,33 +4,6 @@ from textwrap import dedent as d
 import pytest
 
 
-@pytest.mark.parametrize("keyname", ["name", "version", "description"])
-def test_read_simple_project_attrs(chdir, tmp_path, run_line, keyname):
-    pyproject = tmp_path / "pyproject.toml"
-    toml_text = d(
-        """\
-        [project]
-        name = "mypkg"
-        version = "1.2.4"
-        description = "A very cool package"
-        """
-    )
-    pyproject.write_text(toml_text, encoding="utf-8")
-
-    expect_value = None
-    for line in toml_text.splitlines():
-        if line.startswith(keyname):
-            expect_value = line.strip().split('"')[1]
-            break
-    else:
-        pytest.fail(f"didn't find {keyname} in TOML data")
-
-    with chdir(tmp_path):
-        cmd = ["mddj", "read", keyname]
-
-        run_line(cmd, search_stdout=rf"^{re.escape(expect_value)}$")
-
-
 def test_read_version_from_pyproject(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
@@ -55,6 +28,66 @@ def test_read_version_from_pyproject(chdir, tmp_path, run_line):
 
     with chdir(tmp_path):
         run_line("mddj read version", search_stdout=r"^8\.0\.7$")
+
+
+def test_read_version_from_build(chdir, tmp_path, run_line):
+    setupcfg = tmp_path / "setup.cfg"
+
+    setupcfg.write_text(
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
+
+            author = Foo
+            author_email = foo@example.org
+            """
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
+    (tmp_path / "foopkg.py").touch()
+
+    with chdir(tmp_path):
+        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
+
+
+def test_read_version_from_build_with_pyproject_present(chdir, tmp_path, run_line):
+    setupcfg = tmp_path / "setup.cfg"
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        d(
+            """\
+            [project]
+            name = "foopkg"
+            dynamic = ["version"]
+            """
+        )
+    )
+
+    setupcfg.write_text(
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
+
+            author = Foo
+            author_email = foo@example.org
+            """
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
+    (tmp_path / "foopkg.py").touch()
+
+    with chdir(tmp_path):
+        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
 
 
 @pytest.mark.parametrize(
