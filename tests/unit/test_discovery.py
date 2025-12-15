@@ -41,3 +41,16 @@ def test_discovery_selects_setup_py_at_repo_root_as_final_guess(tmp_path):
     subdir.mkdir()
 
     assert str(discover_project_dir(subdir)) == str(tmp_path)
+
+
+@pytest.mark.parametrize("vcs_indicator", (".git", ".hg", ".svn"))
+def test_discovery_raises_lookup_error_if_no_project_indicator_is_found(
+    tmp_path, vcs_indicator
+):
+    (tmp_path / vcs_indicator).mkdir()
+
+    loc = tmp_path / "subdir"
+    loc.mkdir()
+
+    with pytest.raises(LookupError, match="mddj could not find the project root"):
+        discover_project_dir(loc)

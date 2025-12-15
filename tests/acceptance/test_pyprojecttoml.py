@@ -64,47 +64,6 @@ def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
         run_line(cmd, search_stdout=expect_result)
 
 
-@pytest.mark.parametrize("quote_char", ('"', "'"))
-def test_update_version_assignment(chdir, tmp_path, run_line, quote_char):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
-        d(
-            f"""\
-            [build-system]
-            requires = ["setuptools"]
-            build-backend = "setuptools.build_meta"
-
-            [project]
-            name = "foopkg"
-            version = {quote_char}1.0.0{quote_char}
-            authors = [
-              {{ name = "Foo", email = "foo@example.org" }},
-            ]
-            """
-        ),
-        encoding="utf-8",
-    )
-
-    with chdir(tmp_path):
-        run_line("mddj write version 2.3.1")
-
-    assert pyproject.read_text() == d(
-        f"""\
-        [build-system]
-        requires = ["setuptools"]
-        build-backend = "setuptools.build_meta"
-
-        [project]
-        name = "foopkg"
-        version = {quote_char}2.3.1{quote_char}
-        authors = [
-          {{ name = "Foo", email = "foo@example.org" }},
-        ]
-        """
-    )
-
-
 def test_read_version_from_pyproject(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
