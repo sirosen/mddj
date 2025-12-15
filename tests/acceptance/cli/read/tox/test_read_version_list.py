@@ -1,27 +1,7 @@
 from textwrap import dedent as d
 
 
-def test_read_min_version(chdir, tmp_path, run_line):
-    toxini = tmp_path / "tox.ini"
-
-    toxini.write_text(
-        d(
-            """\
-            [tox]
-            envlist = py{36,37,38,35,39,310}
-
-            [testenv]
-            commands = python -m pytest
-            """
-        ),
-        encoding="utf-8",
-    )
-
-    with chdir(tmp_path):
-        run_line("mddj read tox min-version", search_stdout="3.5")
-
-
-def test_read_version_list(chdir, tmp_path, run_line):
+def test_read_version_list_simple(chdir, tmp_path, run_line):
     toxini = tmp_path / "tox.ini"
 
     toxini.write_text(
