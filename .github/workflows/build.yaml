@@ -8,10 +8,10 @@ jobs:
     strategy:
       matrix:
         toxenv: [mypy, lint, lint_imports]
-        py: ["3.13"]
+        py: ["3.14"]
 
     runs-on: ubuntu-latest
-    name: "Run '${{ matrix.toxenv }}' on python ${{ matrix.py }}"
+    name: "Run '${{ matrix.toxenv }}' on Python ${{ matrix.py }}"
     steps:
       - uses: actions/checkout@v6
 
@@ -36,10 +36,24 @@ jobs:
   ci-test-matrix:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os:
+          - name: Linux
+            runner: ubuntu-latest
+          - name: Windows
+            runner: windows-latest
+          - name: macOS
+            runner: macos-latest
         py: ['3.10', '3.11', '3.12', '3.13', '3.14']
-    name: "Run tests on ${{ matrix.os }}, py${{ matrix.py }}"
-    runs-on: ${{ matrix.os }}
+        factor:
+          - name: base
+            tox_command: 'run -e py'
+          - name: tox v3
+            tox_command: 'run -e py-tox3'
+          - name: tox v4
+            tox_command: 'run -e py-tox4'
+
+    name: "Test (${{ matrix.factor.name }}) ${{ matrix.os.name }} x Python ${{ matrix.py }}"
+    runs-on: ${{ matrix.os.runner }}
     steps:
       - uses: actions/checkout@v6
 
@@ -72,4 +86,4 @@ jobs:
             hash=${{ hashFiles('.github/workflows/build.yaml', 'pyproject.toml', 'tox.ini', 'cachedate.txt') }}
 
       - name: test
-        run: python -m tox run -e py
+        run: python -m tox ${{ matrix.factor.tox_command }}

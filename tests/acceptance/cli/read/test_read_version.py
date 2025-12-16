@@ -4,107 +4,6 @@ from textwrap import dedent as d
 import pytest
 
 
-@pytest.mark.parametrize("keyname", ["name", "version", "description"])
-def test_read_simple_project_attrs(chdir, tmp_path, run_line, keyname):
-    pyproject = tmp_path / "pyproject.toml"
-    toml_text = d(
-        """\
-        [project]
-        name = "mypkg"
-        version = "1.2.4"
-        description = "A very cool package"
-        """
-    )
-    pyproject.write_text(toml_text, encoding="utf-8")
-
-    expect_value = None
-    for line in toml_text.splitlines():
-        if line.startswith(keyname):
-            expect_value = line.strip().split('"')[1]
-            break
-    else:
-        pytest.fail(f"didn't find {keyname} in TOML data")
-
-    with chdir(tmp_path):
-        cmd = ["mddj", "read", keyname]
-
-        run_line(cmd, search_stdout=rf"^{re.escape(expect_value)}$")
-
-
-@pytest.mark.parametrize("lower_bound", (True, False))
-def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
-        d(
-            """\
-            [build-system]
-            requires = ["setuptools"]
-            build-backend = "setuptools.build_meta"
-
-            [project]
-            name = "foopkg"
-            version = "1.0.0"
-            authors = [
-              { name = "Foo", email = "foo@example.org" },
-            ]
-            requires-python = ">=3.11"
-            """
-        ),
-        encoding="utf-8",
-    )
-    (tmp_path / "foopkg.py").touch()
-
-    with chdir(tmp_path):
-        cmd = ["mddj", "read", "requires-python"]
-        if lower_bound:
-            cmd.append("--lower-bound")
-
-        expect_result = r"^3\.11$" if lower_bound else r"^>=3\.11$"
-        run_line(cmd, search_stdout=expect_result)
-
-
-@pytest.mark.parametrize("quote_char", ('"', "'"))
-def test_update_version_assignment(chdir, tmp_path, run_line, quote_char):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
-        d(
-            f"""\
-            [build-system]
-            requires = ["setuptools"]
-            build-backend = "setuptools.build_meta"
-
-            [project]
-            name = "foopkg"
-            version = {quote_char}1.0.0{quote_char}
-            authors = [
-              {{ name = "Foo", email = "foo@example.org" }},
-            ]
-            """
-        ),
-        encoding="utf-8",
-    )
-
-    with chdir(tmp_path):
-        run_line("mddj write version 2.3.1")
-
-    assert pyproject.read_text() == d(
-        f"""\
-        [build-system]
-        requires = ["setuptools"]
-        build-backend = "setuptools.build_meta"
-
-        [project]
-        name = "foopkg"
-        version = {quote_char}2.3.1{quote_char}
-        authors = [
-          {{ name = "Foo", email = "foo@example.org" }},
-        ]
-        """
-    )
-
-
 def test_read_version_from_pyproject(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
@@ -129,6 +28,66 @@ def test_read_version_from_pyproject(chdir, tmp_path, run_line):
 
     with chdir(tmp_path):
         run_line("mddj read version", search_stdout=r"^8\.0\.7$")
+
+
+def test_read_version_from_build(chdir, tmp_path, run_line):
+    setupcfg = tmp_path / "setup.cfg"
+
+    setupcfg.write_text(
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
+
+            author = Foo
+            author_email = foo@example.org
+            """
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
+    (tmp_path / "foopkg.py").touch()
+
+    with chdir(tmp_path):
+        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
+
+
+def test_read_version_from_build_with_pyproject_present(chdir, tmp_path, run_line):
+    setupcfg = tmp_path / "setup.cfg"
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        d(
+            """\
+            [project]
+            name = "foopkg"
+            dynamic = ["version"]
+            """
+        )
+    )
+
+    setupcfg.write_text(
+        d(
+            """\
+            [metadata]
+            name = foopkg
+            version = 1.0.0
+
+            author = Foo
+            author_email = foo@example.org
+            """
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "setup.py").write_text(
+        "from setuptools import setup; setup()\n", encoding="utf-8"
+    )
+    (tmp_path / "foopkg.py").touch()
+
+    with chdir(tmp_path):
+        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
 
 
 @pytest.mark.parametrize(
@@ -259,31 +218,3 @@ def test_read_version_from_pyproject_ignores_malformed_tool_config(
 
     with tmpdir.as_cwd():
         run_line("mddj read version", search_stdout=r"^8\.0\.7$")
-
-
-def test_read_dependencies(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
-        d(
-            """\
-            [build-system]
-            requires = ["setuptools"]
-            build-backend = "setuptools.build_meta"
-
-            [project]
-            name = "foopkg"
-            version = "1.0.0"
-            authors = [
-              { name = "Foo", email = "foo@example.org" },
-            ]
-            dependencies = ["foo", "bar<2"]
-            """
-        ),
-        encoding="utf-8",
-    )
-    (tmp_path / "foopkg.py").touch()
-
-    with chdir(tmp_path):
-        result = run_line("mddj read dependencies")
-        assert result.stdout == "foo\nbar<2\n"
