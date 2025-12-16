@@ -1,5 +1,9 @@
 from textwrap import dedent as d
 
+import pytest
+
+pytest.importorskip("tox")
+
 
 def test_read_min_version_success(chdir, tmp_path, run_line):
     toxini = tmp_path / "tox.ini"
