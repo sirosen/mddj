@@ -3,8 +3,12 @@ from __future__ import annotations
 import collections.abc
 import functools
 import pathlib
+import re
+import types
+import typing as t
 
 import tomlkit
+from packaging.requirements import Requirement
 
 from .._internal import _cached_toml, _types
 from .config import ReaderConfig
@@ -40,6 +44,7 @@ class Reader:
     ) -> None:
         self.config = config
         self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
+        self._lookup_cache: dict[str, t.Any] = {}
 
         self.tox = ToxReader()
 
@@ -79,41 +84,88 @@ class Reader:
             return None
 
     def _lookup(self, project_fieldname: str, metadata_fieldname: str) -> object | None:
+        if project_fieldname in self._lookup_cache:
+            return self._lookup_cache[project_fieldname]
+
         value = self._read_static(project_fieldname)
         if value is not None:
-            return value
-        return self._wheel_metadata.get(  # type: ignore[no-any-return]
-            metadata_fieldname
-        )
+            self._lookup_cache[project_fieldname] = value
+        else:
+            value = self._wheel_metadata.get(metadata_fieldname)
+            self._lookup_cache[project_fieldname] = value
+        return value
 
-    def name(self) -> str:
-        return str(self._lookup("name", "Name"))
+    def _lookup_string_array(
+        self,
+        project_fieldname: str,
+        metadata_fieldname: str,
+        mode: t.Literal["commasep", "multiuse"] = "multiuse",
+    ) -> tuple[str, ...]:
+        if project_fieldname in self._lookup_cache:
+            return self._lookup_cache[project_fieldname]
 
-    def version(self) -> str:
-        """Get the version of the project."""
-        return str(self._lookup("version", "Version"))
+        value: object | None = self._read_static(project_fieldname)
+        if _types.is_toml_array(value):
+            value = tuple(str(x) for x in value)
+            self._lookup_cache[project_fieldname] = value
+        else:
+            match mode:
+                case "multiuse":
+                    value = tuple(
+                        str(x) for x in self._wheel_metadata.get_all(metadata_fieldname)
+                    )
+                case "commasep":
+                    value = self._wheel_metadata.get(metadata_fieldname)
+                    if isinstance(value, str):
+                        value = tuple(value.split(","))
+                    else:
+                        value = ()
+                case _ as unreachable:
+                    raise t.assert_never(unreachable)
+            self._lookup_cache[project_fieldname] = value
+
+        return value
+
+    def classifiers(self) -> tuple[str, ...]:
+        return self._lookup_string_array("classifiers", "Classifier")
+
+    def dependencies(self) -> tuple[str, ...]:
+        """Get the dependencies for the project."""
+        return self._lookup_string_array("dependencies", "Requires-Dist")
 
     def description(self) -> str:
         return str(self._lookup("description", "Summary"))
 
-    @functools.cached_property
-    def _keywords(self) -> tuple[str, ...]:
-        value = self._lookup("keywords", "Keywords")
-        if _types.is_toml_array(value):  # pyproject.toml it's an array
-            return tuple(str(k) for k in value)
-        if isinstance(value, str):  # but in metadata it's a commasep str
-            return tuple(value.split(","))
-        return ()
+    def import_names(self) -> tuple[str, ...]:
+        return self._lookup_string_array("import-names", "Import-Name")
+
+    def import_namespaces(self) -> tuple[str, ...]:
+        return self._lookup_string_array("import-namespaces", "Import-Namespace")
 
     def keywords(self) -> tuple[str, ...]:
-        return self._keywords
+        return self._lookup_string_array("keywords", "Keywords", mode="commasep")
+
+    def optional_dependencies(self) -> types.MappingProxyType[str, tuple[str, ...]]:
+        return self._optional_dependencies
 
     @functools.cached_property
-    def _requires_python(self) -> str:
-        value = self._lookup("requires-python", "Requires-Python")
-        if value is None:
-            raise LookupError("No Requires-Python data found")
-        return str(value)
+    def _optional_dependencies(self) -> types.MappingProxyType[str, tuple[str, ...]]:
+        value = self._read_static("optional-dependencies")
+        if _types.is_toml_mapping(value):
+            return types.MappingProxyType(value)
+
+        provides_extra = self._wheel_metadata.get_all("Provides-Extra")
+        requires_dist = self._wheel_metadata.get_all("Requires-Dist")
+        map = {}
+        if provides_extra and requires_dist:
+            for extra_name in provides_extra:
+                map[extra_name] = tuple(
+                    _read_extra_from_dists(extra_name, requires_dist)
+                )
+        return types.MappingProxyType(map)
+
+    def name(self) -> str:
+        return str(self._lookup("name", "Name"))
 
     def requires_python(self, *, lower_bound: bool = False) -> str:
         """
@@ -128,17 +180,38 @@ class Reader:
         return self._requires_python
 
     @functools.cached_property
-    def _dependencies(self) -> tuple[str, ...]:
-        value: object | None = self._read_static("dependencies")
+    def _requires_python(self) -> str:
+        value = self._lookup("requires-python", "Requires-Python")
+        if value is None:
+            raise LookupError("No Requires-Python data found")
+        return str(value)
 
-        if _types.is_toml_array(value):
-            return tuple(str(d) for d in value)
+    def version(self) -> str:
+        """Get the version of the project."""
+        return str(self._lookup("version", "Version"))
 
-        return tuple(str(d) for d in self._wheel_metadata.get_all("Requires-Dist"))
 
-    def dependencies(self) -> tuple[str, ...]:
-        """Get the dependencies for the project."""
-        return self._dependencies
+def _read_extra_from_dists(
+    extra_name: str, requires_dist: t.Iterable[str]
+) -> t.Iterable[str, ...]:
+    marker_patterns = tuple(
+        re.compile(pat)
+        for quote in ('"', "'")
+        for pat in (
+            rf"^\s*extra\s*==\s*{quote}{extra_name}{quote}\s*$",
+            rf"^\s*extra\s*==\s*{quote}{extra_name}{quote}\s+and\s",
+            rf"\sand\s+extra\s*==\s*{quote}{extra_name}{quote}$",
+        )
+    )
+    for dist_string in requires_dist:
+        # substring matching to reject most things quickly
+        if "extra" not in dist_string or extra_name not in dist_string:
+            continue
+        markers = str(Requirement(dist_string).marker).strip()
+        for pat in marker_patterns:
+            if pat.search(markers):
+                yield dist_string
+                break
 
 
 def _requires_python_lower_bound(req: str) -> str:
