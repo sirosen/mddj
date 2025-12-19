@@ -2,15 +2,12 @@ from __future__ import annotations
 
 import collections.abc
 import functools
-import pathlib
-import re
 import types
 import typing as t
 
 import tomlkit
-from packaging.requirements import Requirement
 
-from .._internal import _cached_toml, _types
+from .._internal import _cached_toml, _types, _wheel_metadata
 from .config import ReaderConfig
 from .tox_reader import ToxReader
 
@@ -49,12 +46,16 @@ class Reader:
         self.tox = ToxReader()
 
     @functools.cached_property
-    def _wheel_metadata(self) -> _importlib_metadata.PackageMetadata:
-        return _get_wheel_metadata(
+    def _wheel_package_metadata(self) -> _importlib_metadata.PackageMetadata:
+        return _wheel_metadata.get_package_metadata(
             self.config.project_directory,
             isolated=self.config.isolated_builds,
             quiet=self.config.capture_build_output,
         )
+
+    @functools.cached_property
+    def _parsed_wheel_dependency_data(self) -> _wheel_metadata.WheelDependencyData:
+        return _wheel_metadata.load_wheel_dependency_data(self._wheel_package_metadata)
 
     @functools.cached_property
     def _pyproject_toml_document(self) -> tomlkit.TOMLDocument:
@@ -85,13 +86,13 @@ class Reader:
 
     def _lookup(self, project_fieldname: str, metadata_fieldname: str) -> object | None:
         if project_fieldname in self._lookup_cache:
-            return self._lookup_cache[project_fieldname]
+            return self._lookup_cache[project_fieldname]  # type: ignore[no-any-return]
 
         value = self._read_static(project_fieldname)
         if value is not None:
             self._lookup_cache[project_fieldname] = value
         else:
-            value = self._wheel_metadata.get(metadata_fieldname)
+            value = self._wheel_package_metadata.get(metadata_fieldname)
             self._lookup_cache[project_fieldname] = value
         return value
 
@@ -102,7 +103,7 @@ class Reader:
         mode: t.Literal["commasep", "multiuse"] = "multiuse",
     ) -> tuple[str, ...]:
         if project_fieldname in self._lookup_cache:
-            return self._lookup_cache[project_fieldname]
+            return self._lookup_cache[project_fieldname]  # type: ignore[no-any-return]
 
         value: object | None = self._read_static(project_fieldname)
         if _types.is_toml_array(value):
@@ -112,10 +113,13 @@ class Reader:
             match mode:
                 case "multiuse":
                     value = tuple(
-                        str(x) for x in self._wheel_metadata.get_all(metadata_fieldname)
+                        str(x)
+                        for x in self._wheel_package_metadata.get_all(
+                            metadata_fieldname
+                        )
                     )
                 case "commasep":
-                    value = self._wheel_metadata.get(metadata_fieldname)
+                    value = self._wheel_package_metadata.get(metadata_fieldname)
                     if isinstance(value, str):
                         value = tuple(value.split(","))
                     else:
@@ -131,7 +135,11 @@ class Reader:
 
     def dependencies(self) -> tuple[str, ...]:
         """Get the dependencies for the project."""
-        return self._lookup_string_array("dependencies", "Requires-Dist")
+        value = self._read_static("dependencies")
+        if _types.is_toml_array(value):
+            return tuple(value)
+
+        return self._parsed_wheel_dependency_data.dependencies
 
     def description(self) -> str:
         return str(self._lookup("description", "Summary"))
@@ -152,17 +160,25 @@ class Reader:
     def _optional_dependencies(self) -> types.MappingProxyType[str, tuple[str, ...]]:
         value = self._read_static("optional-dependencies")
         if _types.is_toml_mapping(value):
-            return types.MappingProxyType(value)
+            map: dict[str, tuple[str, ...]] = {}
+            for k, v in value.items():
+                if not isinstance(k, str):
+                    raise ValueError(
+                        f"Got non-string key in project.optional-dependencies: {k!r}"
+                    )
+                if not _types.is_toml_array(v):
+                    raise ValueError(
+                        f"Value for project.optional-dependencies[{k}] is not an "
+                        "array."
+                    )
+                if any(not isinstance(x, str) for x in v):
+                    raise ValueError(
+                        f"Got a non-string value in project.optional-dependencies[{k}]."
+                    )
+                map[k] = tuple(v)
+            return types.MappingProxyType(map)
 
-        provides_extra = self._wheel_metadata.get_all("Provides-Extra")
-        requires_dist = self._wheel_metadata.get_all("Requires-Dist")
-        map = {}
-        if provides_extra and requires_dist:
-            for extra_name in provides_extra:
-                map[extra_name] = tuple(
-                    _read_extra_from_dists(extra_name, requires_dist)
-                )
-        return types.MappingProxyType(map)
+        return self._parsed_wheel_dependency_data.extras
 
     def name(self) -> str:
         return str(self._lookup("name", "Name"))
@@ -191,29 +207,6 @@ class Reader:
         return str(self._lookup("version", "Version"))
 
 
-def _read_extra_from_dists(
-    extra_name: str, requires_dist: t.Iterable[str]
-) -> t.Iterable[str, ...]:
-    marker_patterns = tuple(
-        re.compile(pat)
-        for quote in ('"', "'")
-        for pat in (
-            rf"^\s*extra\s*==\s*{quote}{extra_name}{quote}\s*$",
-            rf"^\s*extra\s*==\s*{quote}{extra_name}{quote}\s+and\s",
-            rf"\sand\s+extra\s*==\s*{quote}{extra_name}{quote}$",
-        )
-    )
-    for dist_string in requires_dist:
-        # substring matching to reject most things quickly
-        if "extra" not in dist_string or extra_name not in dist_string:
-            continue
-        markers = str(Requirement(dist_string).marker).strip()
-        for pat in marker_patterns:
-            if pat.search(markers):
-                yield dist_string
-                break
-
-
 def _requires_python_lower_bound(req: str) -> str:
     reqs = req.split(",")
     lower_bounds = []
@@ -230,24 +223,6 @@ def _requires_python_lower_bound(req: str) -> str:
         raise ValueError("Found no lower bounds")
     else:
         return lower_bounds[0]
-
-
-def _get_wheel_metadata(
-    source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
-) -> _importlib_metadata.PackageMetadata:
-    """
-    Get metadata for wheel, either using the PEP 517 hook or by actually
-    doing a wheel build and examining the result.
-    """
-    import build.util
-    import pyproject_hooks
-
-    runner = pyproject_hooks.quiet_subprocess_runner
-    if not quiet:
-        runner = pyproject_hooks.default_subprocess_runner
-    return build.util.project_wheel_metadata(
-        source_dir, isolated=isolated, runner=runner
-    )
 
 
 def _read_pyproject_toml_value(

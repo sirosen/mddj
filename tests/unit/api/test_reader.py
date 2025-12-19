@@ -94,7 +94,7 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
     reader = Reader(reader_config)
 
     # replace the *descriptor*, not the instance value
-    monkeypatch.setattr(Reader, "_wheel_metadata", make_fake_package_metadata())
+    monkeypatch.setattr(Reader, "_wheel_package_metadata", make_fake_package_metadata())
 
     method = getattr(reader, read_method)
     assert method() == expect_result
