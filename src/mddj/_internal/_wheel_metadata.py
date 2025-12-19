@@ -98,7 +98,6 @@ def _read_extra_from_dists(
 
         # if an exact match works, strip markers entirely
         if exact_pattern.search(marker_string):
-            print(f"{exact_pattern=} matched {marker_string=}")
             req.marker = None
             yield (dist_string, str(req))
             continue
