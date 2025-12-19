@@ -153,11 +153,36 @@ class Reader:
     def keywords(self) -> tuple[str, ...]:
         return self._lookup_string_array("keywords", "Keywords", mode="commasep")
 
-    def optional_dependencies(self) -> types.MappingProxyType[str, tuple[str, ...]]:
-        return self._optional_dependencies
+    def optional_dependencies(
+        self, *, exact_wheel_metadata: bool = False
+    ) -> types.MappingProxyType[str, tuple[str, ...]]:
+        """
+        Retrieve the optional dependencies for the current project.
+
+        When wheel dynamic metadata is used, and wheel metadata is therefore produced,
+        the fields in metadata must be interpreted in order to find optional
+        dependencies based on marker. ``mddj`` checks dependencies which start or end
+        with an ``extra`` marker to find the optional dependencies.
+        This heuristic is correct for typical cases but could be inaccurate with very
+        unusual package builds.
+
+        :param exact_wheel_metadata: Only applies to dynamic metadata builds. After
+            finding optional dependencies, ``mddj`` will attempt to remove the markers
+            which associate a dependency with an extra. Set this flag to ``True`` to
+            retrieve the original data without this modification.
+        """
+        if (static := self._static_optional_dependencies) is not None:
+            return static
+
+        if exact_wheel_metadata:
+            return self._parsed_wheel_dependency_data.extras
+        else:
+            return self._parsed_wheel_dependency_data.cleaned_extras
 
     @functools.cached_property
-    def _optional_dependencies(self) -> types.MappingProxyType[str, tuple[str, ...]]:
+    def _static_optional_dependencies(
+        self,
+    ) -> types.MappingProxyType[str, tuple[str, ...]] | None:
         value = self._read_static("optional-dependencies")
         if _types.is_toml_mapping(value):
             map: dict[str, tuple[str, ...]] = {}
@@ -178,7 +203,7 @@ class Reader:
                 map[k] = tuple(v)
             return types.MappingProxyType(map)
 
-        return self._parsed_wheel_dependency_data.extras
+        return None
 
     def name(self) -> str:
         return str(self._lookup("name", "Name"))
