@@ -26,3 +26,12 @@ def test_requires_python(run_line):
 
 def test_say_my_name(run_line):
     run_line("mddj read name", search_stdout=r"^mddj$")
+
+
+def test_my_import_names_are_stated(run_line):
+    run_line("mddj read import-names", search_stdout=r"^mddj$")
+
+
+def test_i_have_no_namespaces(run_line):
+    result = run_line("mddj read import-namespaces")
+    assert result.stdout == ""

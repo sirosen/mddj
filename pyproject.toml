@@ -43,6 +43,7 @@ dependencies = [
   "tomlkit>=0.13.2",
   "typing_extensions; python_version<'3.13'",
 ]
+import-names = ["mddj"]
 
 [project.urls]
 source = "https://github.com/sirosen/mddj"

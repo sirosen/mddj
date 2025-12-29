@@ -115,7 +115,7 @@ class Reader:
                     value = tuple(
                         str(x)
                         for x in self._wheel_package_metadata.get_all(
-                            metadata_fieldname
+                            metadata_fieldname, ()
                         )
                     )
                 case "commasep":
