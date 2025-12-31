@@ -6,6 +6,7 @@ import types
 import typing as t
 
 import tomlkit
+from packaging.utils import canonicalize_name
 
 from .._internal import _cached_toml, _types, _wheel_metadata
 from .config import ReaderConfig
@@ -201,7 +202,21 @@ class Reader:
                         f"Got a non-string value in project.optional-dependencies[{k}]."
                     )
                 map[k] = tuple(v)
-            return types.MappingProxyType(map)
+
+            # static data is not already normalized, so it must be done by mddj or it
+            # won't be any good for lookups/comparisons
+            canonicalized_map: dict[str, tuple[str, ...]] = {}
+            for name, value in map.items():
+                canonical = canonicalize_name(name)
+                if canonical in canonicalized_map:
+                    raise ValueError(
+                        f"optional-dependencies for '{canonical}' appear "
+                        "multiple times in TOML data. This is valid TOML but not valid "
+                        "package metadata. "
+                        "Read more: https://packaging.python.org/en/latest/specifications/core-metadata/#provides-extra-multiple-use"  # noqa: E501
+                    )
+                canonicalized_map[canonical] = value
+            return types.MappingProxyType(canonicalized_map)
 
         return None
 

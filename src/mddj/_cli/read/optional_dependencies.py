@@ -1,11 +1,27 @@
 import click
+from packaging.utils import canonicalize_name
 
 from mddj._cli.state import CommandState, common_args
 
 
+def _normalize_extra_callback(
+    ctx: click.Context, param: click.Parameter, value: str | None
+) -> str | None:
+    if not value:
+        return value
+    return canonicalize_name(value, validate=True)
+
+
 @click.command("optional-dependencies")
 @common_args
-@click.option("--extra", help="Only read this extra name.")
+@click.option(
+    "--extra",
+    help=(
+        "Only read this extra name. If the project does not "
+        "define such an extra, exit with an error."
+    ),
+    callback=_normalize_extra_callback,
+)
 @click.option(
     "--exact-wheel-metadata",
     help=(
@@ -16,7 +32,7 @@ from mddj._cli.state import CommandState, common_args
 )
 def read_optional_dependencies(
     *,
-    extra: str,
+    extra: str | None,
     exact_wheel_metadata: bool,
     state: CommandState,
 ) -> None:
@@ -26,9 +42,6 @@ def read_optional_dependencies(
     By default, all optional dependencies are shown, grouped by their extra name.
     If an extra name is given, only the optional dependencies for that extra will be
     shown.
-
-    Empty extras are treated valid if the package defines them, but extras which don't
-    match package data are treated as errors.
 
     When optional dependencies are dynamic, users may be surprised that extras are
     encoded into dependency markers. By default, `mddj` will try to strip off these
@@ -40,7 +53,12 @@ def read_optional_dependencies(
 
     if extra:
         if extra not in opt_deps:
-            click.echo(f"'{extra}' does not appear in package extras", err=True)
+            click.echo(
+                f"'{extra}' does not appear in project extras. Valid names are:",
+                err=True,
+            )
+            for key in opt_deps.keys():
+                click.echo(f"    {key}", err=True)
             click.get_current_context().exit(1)
         for dep in opt_deps[extra]:
             click.echo(dep)
