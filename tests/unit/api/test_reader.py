@@ -13,7 +13,8 @@ def make_fake_package_metadata(
     summary="the foo pkg",
     keywords="networking,cli,big data",
     requires_python=">= 3.7",
-    requires_dist=("bar", "baz"),
+    requires_dist=("bar", "baz", "colorama; extra == 'cli'"),
+    provides_extra=("cli",),
 ):
     fake = mock.Mock()
     fake._data = {
@@ -23,6 +24,7 @@ def make_fake_package_metadata(
         "Keywords": keywords,
         "Requires-Python": requires_python,
         "Requires-Dist": requires_dist,
+        "Provides-Extra": provides_extra,
     }
 
     def get(key):
@@ -33,8 +35,10 @@ def make_fake_package_metadata(
 
     fake.get.side_effect = get
 
-    def get_all(key):
-        value = fake._data.get(key)
+    def get_all(key, failobj=None):
+        value = fake._data.get(key, failobj)
+        if value is failobj:
+            return failobj
         if value is not None and not isinstance(value, tuple):
             pytest.fail(f"bad get_all() usage on key: {key}")
         return value
@@ -94,7 +98,60 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
     reader = Reader(reader_config)
 
     # replace the *descriptor*, not the instance value
-    monkeypatch.setattr(Reader, "_wheel_metadata", make_fake_package_metadata())
+    monkeypatch.setattr(Reader, "_wheel_package_metadata", make_fake_package_metadata())
 
     method = getattr(reader, read_method)
     assert method() == expect_result
+
+
+def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
+    reader_config, monkeypatch
+):
+    reader_config.pyproject_path.write_text(
+        d(
+            """\
+            [project]
+            dynamic = [
+                "name", "version", "description", "keywords", "requires-python",
+                "dependencies", "optional-dependencies"
+            ]
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    reader = Reader(reader_config)
+
+    # replace the *descriptor*, not the instance value
+    monkeypatch.setattr(
+        Reader,
+        "_wheel_package_metadata",
+        make_fake_package_metadata(
+            requires_dist=(
+                "bar",
+                "baz",
+                "colorama; extra == 'cli'",
+                "better-tracebacks; extra == 'cli'",
+                "better-tracebacks; extra == 'pretty'",
+            ),
+            provides_extra=("cli", "pretty"),
+        ),
+    )
+
+    # dependencies should only show `bar` and `baz` -- the others "look optional"
+    assert reader.dependencies() == ("bar", "baz")
+
+    # optional deps should strip all of the extra markers by default
+    extras_cleaned = reader.optional_dependencies()
+    assert set(extras_cleaned.keys()) == {"cli", "pretty"}
+    assert set(extras_cleaned["cli"]) == {"colorama", "better-tracebacks"}
+    assert set(extras_cleaned["pretty"]) == {"better-tracebacks"}
+
+    # but with the arg to preserve exact, we get the "ugly" true data
+    extras_exact = reader.optional_dependencies(exact_wheel_metadata=True)
+    assert set(extras_exact.keys()) == {"cli", "pretty"}
+    assert set(extras_exact["cli"]) == {
+        "colorama; extra == 'cli'",
+        "better-tracebacks; extra == 'cli'",
+    }
+    assert set(extras_exact["pretty"]) == {"better-tracebacks; extra == 'pretty'"}

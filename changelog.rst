@@ -5,6 +5,10 @@ Changelog
 .. ----------
 
 - Add ``DJ.read.name()`` and ``mddj read name``
+- Add ``DJ.read.classifiers()`` and ``mddj read classifiers``
+- Add ``DJ.read.import_names()`` and ``mddj read import-names``
+- Add ``DJ.read.import_namespaces()`` and ``mddj read import-namespaces``
+- Add ``DJ.read.optional_dependencies()`` and ``mddj read optional-dependencies``
 
 0.4.2
 -----

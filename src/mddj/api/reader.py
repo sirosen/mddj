@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import collections.abc
 import functools
-import pathlib
+import types
+import typing as t
 
 import tomlkit
+from packaging.utils import canonicalize_name
 
-from .._internal import _cached_toml, _types
+from .._internal import _cached_toml, _types, _wheel_metadata
 from .config import ReaderConfig
 from .tox_reader import ToxReader
 
@@ -40,16 +42,21 @@ class Reader:
     ) -> None:
         self.config = config
         self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
+        self._lookup_cache: dict[str, t.Any] = {}
 
         self.tox = ToxReader()
 
     @functools.cached_property
-    def _wheel_metadata(self) -> _importlib_metadata.PackageMetadata:
-        return _get_wheel_metadata(
+    def _wheel_package_metadata(self) -> _importlib_metadata.PackageMetadata:
+        return _wheel_metadata.get_package_metadata(
             self.config.project_directory,
             isolated=self.config.isolated_builds,
             quiet=self.config.capture_build_output,
         )
+
+    @functools.cached_property
+    def _parsed_wheel_dependency_data(self) -> _wheel_metadata.WheelDependencyData:
+        return _wheel_metadata.load_wheel_dependency_data(self._wheel_package_metadata)
 
     @functools.cached_property
     def _pyproject_toml_document(self) -> tomlkit.TOMLDocument:
@@ -79,41 +86,148 @@ class Reader:
             return None
 
     def _lookup(self, project_fieldname: str, metadata_fieldname: str) -> object | None:
+        if project_fieldname in self._lookup_cache:
+            return self._lookup_cache[project_fieldname]  # type: ignore[no-any-return]
+
         value = self._read_static(project_fieldname)
         if value is not None:
-            return value
-        return self._wheel_metadata.get(  # type: ignore[no-any-return]
-            metadata_fieldname
-        )
+            self._lookup_cache[project_fieldname] = value
+        else:
+            value = self._wheel_package_metadata.get(metadata_fieldname)
+            self._lookup_cache[project_fieldname] = value
+        return value
 
-    def name(self) -> str:
-        return str(self._lookup("name", "Name"))
+    def _lookup_string_array(
+        self,
+        project_fieldname: str,
+        metadata_fieldname: str,
+        mode: t.Literal["commasep", "multiuse"] = "multiuse",
+    ) -> tuple[str, ...]:
+        if project_fieldname in self._lookup_cache:
+            return self._lookup_cache[project_fieldname]  # type: ignore[no-any-return]
 
-    def version(self) -> str:
-        """Get the version of the project."""
-        return str(self._lookup("version", "Version"))
+        value: object | None = self._read_static(project_fieldname)
+        if _types.is_toml_array(value):
+            value = tuple(str(x) for x in value)
+            self._lookup_cache[project_fieldname] = value
+        else:
+            match mode:
+                case "multiuse":
+                    value = tuple(
+                        str(x)
+                        for x in self._wheel_package_metadata.get_all(
+                            metadata_fieldname, ()
+                        )
+                    )
+                case "commasep":
+                    value = self._wheel_package_metadata.get(metadata_fieldname)
+                    if isinstance(value, str):
+                        value = tuple(value.split(","))
+                    else:
+                        value = ()
+                case _ as unreachable:
+                    raise t.assert_never(unreachable)
+            self._lookup_cache[project_fieldname] = value
+
+        return value
+
+    def classifiers(self) -> tuple[str, ...]:
+        return self._lookup_string_array("classifiers", "Classifier")
+
+    def dependencies(self) -> tuple[str, ...]:
+        """
+        Get the dependencies for the project.
+
+        Because extras use some of the same metadata fields, when dynamic metadata is
+        used this listing is filtered to remove the values which are associated with
+        optional-dependencies.
+        """
+        value = self._read_static("dependencies")
+        if _types.is_toml_array(value):
+            return tuple(value)
+
+        return self._parsed_wheel_dependency_data.dependencies
 
     def description(self) -> str:
         return str(self._lookup("description", "Summary"))
 
-    @functools.cached_property
-    def _keywords(self) -> tuple[str, ...]:
-        value = self._lookup("keywords", "Keywords")
-        if _types.is_toml_array(value):  # pyproject.toml it's an array
-            return tuple(str(k) for k in value)
-        if isinstance(value, str):  # but in metadata it's a commasep str
-            return tuple(value.split(","))
-        return ()
+    def import_names(self) -> tuple[str, ...]:
+        return self._lookup_string_array("import-names", "Import-Name")
+
+    def import_namespaces(self) -> tuple[str, ...]:
+        return self._lookup_string_array("import-namespaces", "Import-Namespace")
 
     def keywords(self) -> tuple[str, ...]:
-        return self._keywords
+        return self._lookup_string_array("keywords", "Keywords", mode="commasep")
+
+    def optional_dependencies(
+        self, *, exact_wheel_metadata: bool = False
+    ) -> types.MappingProxyType[str, tuple[str, ...]]:
+        """
+        Retrieve the optional dependencies for the current project.
+
+        When wheel dynamic metadata is used, and wheel metadata is therefore produced,
+        the fields in metadata must be interpreted in order to find optional
+        dependencies based on marker. ``mddj`` checks dependencies which start or end
+        with an ``extra`` marker to find the optional dependencies.
+        This heuristic is correct for typical cases but could be inaccurate with very
+        unusual package builds.
+
+        :param exact_wheel_metadata: Only applies to dynamic metadata builds. After
+            finding optional dependencies, ``mddj`` will attempt to remove the markers
+            which associate a dependency with an extra. Set this flag to ``True`` to
+            retrieve the original data without this modification.
+        """
+        if (static := self._static_optional_dependencies) is not None:
+            return static
+
+        if exact_wheel_metadata:
+            return self._parsed_wheel_dependency_data.extras
+        else:
+            return self._parsed_wheel_dependency_data.cleaned_extras
 
     @functools.cached_property
-    def _requires_python(self) -> str:
-        value = self._lookup("requires-python", "Requires-Python")
-        if value is None:
-            raise LookupError("No Requires-Python data found")
-        return str(value)
+    def _static_optional_dependencies(
+        self,
+    ) -> types.MappingProxyType[str, tuple[str, ...]] | None:
+        value = self._read_static("optional-dependencies")
+        if _types.is_toml_mapping(value):
+            map: dict[str, tuple[str, ...]] = {}
+            for k, v in value.items():
+                if not isinstance(k, str):
+                    raise ValueError(
+                        f"Got non-string key in project.optional-dependencies: {k!r}"
+                    )
+                if not _types.is_toml_array(v):
+                    raise ValueError(
+                        f"Value for project.optional-dependencies[{k}] is not an "
+                        "array."
+                    )
+                if any(not isinstance(x, str) for x in v):
+                    raise ValueError(
+                        f"Got a non-string value in project.optional-dependencies[{k}]."
+                    )
+                map[k] = tuple(v)
+
+            # static data is not already normalized, so it must be done by mddj or it
+            # won't be any good for lookups/comparisons
+            canonicalized_map: dict[str, tuple[str, ...]] = {}
+            for name, value in map.items():
+                canonical = canonicalize_name(name)
+                if canonical in canonicalized_map:
+                    raise ValueError(
+                        f"optional-dependencies for '{canonical}' appear "
+                        "multiple times in TOML data. This is valid TOML but not valid "
+                        "package metadata. "
+                        "Read more: https://packaging.python.org/en/latest/specifications/core-metadata/#provides-extra-multiple-use"  # noqa: E501
+                    )
+                canonicalized_map[canonical] = value
+            return types.MappingProxyType(canonicalized_map)
+
+        return None
+
+    def name(self) -> str:
+        return str(self._lookup("name", "Name"))
 
     def requires_python(self, *, lower_bound: bool = False) -> str:
         """
@@ -128,17 +242,15 @@ class Reader:
         return self._requires_python
 
     @functools.cached_property
-    def _dependencies(self) -> tuple[str, ...]:
-        value: object | None = self._read_static("dependencies")
+    def _requires_python(self) -> str:
+        value = self._lookup("requires-python", "Requires-Python")
+        if value is None:
+            raise LookupError("No Requires-Python data found")
+        return str(value)
 
-        if _types.is_toml_array(value):
-            return tuple(str(d) for d in value)
-
-        return tuple(str(d) for d in self._wheel_metadata.get_all("Requires-Dist"))
-
-    def dependencies(self) -> tuple[str, ...]:
-        """Get the dependencies for the project."""
-        return self._dependencies
+    def version(self) -> str:
+        """Get the version of the project."""
+        return str(self._lookup("version", "Version"))
 
 
 def _requires_python_lower_bound(req: str) -> str:
@@ -157,24 +269,6 @@ def _requires_python_lower_bound(req: str) -> str:
         raise ValueError("Found no lower bounds")
     else:
         return lower_bounds[0]
-
-
-def _get_wheel_metadata(
-    source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
-) -> _importlib_metadata.PackageMetadata:
-    """
-    Get metadata for wheel, either using the PEP 517 hook or by actually
-    doing a wheel build and examining the result.
-    """
-    import build.util
-    import pyproject_hooks
-
-    runner = pyproject_hooks.quiet_subprocess_runner
-    if not quiet:
-        runner = pyproject_hooks.default_subprocess_runner
-    return build.util.project_wheel_metadata(
-        source_dir, isolated=isolated, runner=runner
-    )
 
 
 def _read_pyproject_toml_value(
