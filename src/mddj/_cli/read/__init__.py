@@ -9,6 +9,7 @@ from .import_names import read_import_names
 from .import_namespaces import read_import_namespaces
 from .keywords import read_keywords
 from .name import read_name
+from .optional_dependencies import read_optional_dependencies
 from .requires_python import read_requires_python
 from .tox import read_tox
 from .version import read_version
@@ -27,6 +28,7 @@ read.add_command(read_import_names)
 read.add_command(read_import_namespaces)
 read.add_command(read_keywords)
 read.add_command(read_name)
+read.add_command(read_optional_dependencies)
 read.add_command(read_requires_python)
 read.add_command(read_version)
 
