@@ -2,6 +2,7 @@ import click
 
 from mddj._cli.state import CommandState, common_args
 
+from .classifiers import read_classifiers
 from .dependencies import read_dependencies
 from .description import read_description
 from .import_names import read_import_names
@@ -19,6 +20,7 @@ def read(*, state: CommandState) -> None:
     """Read metadata from the current project."""
 
 
+read.add_command(read_classifiers)
 read.add_command(read_dependencies)
 read.add_command(read_description)
 read.add_command(read_import_names)
