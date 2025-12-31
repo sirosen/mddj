@@ -135,7 +135,13 @@ class Reader:
         return self._lookup_string_array("classifiers", "Classifier")
 
     def dependencies(self) -> tuple[str, ...]:
-        """Get the dependencies for the project."""
+        """
+        Get the dependencies for the project.
+
+        Because extras use some of the same metadata fields, when dynamic metadata is
+        used this listing is filtered to remove the values which are associated with
+        optional-dependencies.
+        """
         value = self._read_static("dependencies")
         if _types.is_toml_array(value):
             return tuple(value)
