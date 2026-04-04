@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections.abc
+import email.utils
 import functools
 import types
 import typing as t
@@ -126,10 +127,66 @@ class Reader:
                     else:
                         value = ()
                 case _ as unreachable:
-                    raise t.assert_never(unreachable)
+                    t.assert_never(unreachable)
             self._lookup_cache[project_fieldname] = value
 
         return value
+
+    def _read_dynamic_contact_info(
+        self,
+        metadata_bare_fieldname: str,
+        metadata_email_fieldname: str,
+    ) -> tuple[types.MappingProxyType[str, str], ...]:
+        emails = self._wheel_package_metadata.get(metadata_email_fieldname)
+        names = self._wheel_package_metadata.get(metadata_bare_fieldname)
+
+        email_mappings = _parse_emails_to_contact_info(emails) if emails else []
+        names_in_emails = {
+            mapping["name"] for mapping in email_mappings if "name" in mapping
+        }
+
+        # the name field is split on commas -- this may result in bad data if a person's
+        # name contains a comma, but there is no safe way to handle this possibility
+        if names is not None:
+            for name in names.split(","):
+                name = name.strip()
+                if name not in names_in_emails:
+                    email_mappings.append({"name": name})
+
+        return tuple(types.MappingProxyType(x) for x in email_mappings)
+
+    def _lookup_contact_info(
+        self,
+        project_fieldname: str,
+        metadata_bare_fieldname: str,
+        metadata_email_fieldname: str,
+    ) -> tuple[types.MappingProxyType[str, str], ...]:
+        if project_fieldname in self._lookup_cache:
+            return self._lookup_cache[project_fieldname]  # type: ignore[no-any-return]
+
+        value: object | None = self._read_static(project_fieldname)
+        if value is None:
+            value = self._read_dynamic_contact_info(
+                metadata_bare_fieldname, metadata_email_fieldname
+            )
+        else:
+            if not _types.is_toml_array(value):
+                raise LookupError(
+                    f"Got non-array value for '{project_fieldname}' in pyproject.toml."
+                )
+            if not all(_is_well_formed_contact_info_entry(x) for x in value):
+                raise LookupError(
+                    f"Got a malformed value in '{project_fieldname}' in pyproject.toml."
+                )
+            value = tuple(types.MappingProxyType(x) for x in value)
+
+        self._lookup_cache[project_fieldname] = value
+        return value
+
+    # supported public APIs follow, in alphabetical order
+
+    def authors(self) -> tuple[types.MappingProxyType[str, str], ...]:
+        return self._lookup_contact_info("authors", "Author", "Author-email")
 
     def classifiers(self) -> tuple[str, ...]:
         return self._lookup_string_array("classifiers", "Classifier")
@@ -251,6 +308,28 @@ class Reader:
     def version(self) -> str:
         """Get the version of the project."""
         return str(self._lookup("version", "Version"))
+
+
+def _is_well_formed_contact_info_entry(entry: object) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    if not (entry.keys() <= {"name", "email"}):
+        return False
+    if not all(isinstance(value, str) for value in entry.values()):
+        return False
+    return True
+
+
+def _parse_emails_to_contact_info(emails: str) -> list[dict[str, str]]:
+    ret = []
+    for name, address in email.utils.getaddresses([emails]):
+        item: dict[str, str] = {}
+        if name:
+            item["name"] = name
+        if address:
+            item["email"] = address
+        ret.append(item)
+    return ret
 
 
 def _requires_python_lower_bound(req: str) -> str:
