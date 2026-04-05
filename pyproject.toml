@@ -4,6 +4,8 @@ docs = [
   "sphinx-issues<7",
   "furo==2025.12.19",
 ]
+coverage = ["coverage"]
+test = ["pytest", "pytest-xdist", { include-group = "coverage" }]
 
 
 [build-system]
@@ -52,7 +54,6 @@ changelog = "https://github.com/sirosen/mddj/blob/main/CHANGELOG.md"
 [project.scripts]
 mddj = "mddj._cli:main"
 
-
 [tool.flit.sdist]
 include = ["changelog.rst", "tests/**/*.py", "tox.ini", ".flake8", "justfile"]
 exclude = [".*", "src/**/.*"]
@@ -87,6 +88,9 @@ modules = [
   "mddj.api.writer",
 ]
 
+
+[tool.pytest.ini_options]
+addopts = "-n auto --dist worksteal"
 
 [tool.coverage.run]
 parallel = true
