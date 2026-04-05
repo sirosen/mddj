@@ -3,7 +3,7 @@ from textwrap import dedent as d
 import pytest
 
 from mddj._internal import _cached_toml
-from mddj.api.reader import _read_pyproject_toml_value
+from mddj.api.reader.static_pyproject_reader import _read_pyproject_toml_value
 
 
 @pytest.fixture
