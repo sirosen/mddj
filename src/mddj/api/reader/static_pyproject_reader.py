@@ -12,6 +12,10 @@ from packaging.utils import canonicalize_name
 from ..._internal import _cached_methods, _cached_toml, _types
 
 
+class StaticMetadataMalformed(ValueError):
+    pass
+
+
 class StaticPyprojectReader:
     def __init__(
         self,
@@ -97,7 +101,9 @@ class StaticPyprojectReader:
         elif isinstance(value, str):
             value = str(value)  # convert away from string subtypes
         else:
-            raise LookupError(f"Could not read {key!r}, data was not a string!")
+            raise StaticMetadataMalformed(
+                f"Could not read {key!r}, data was not a string!"
+            )
 
         return value
 
@@ -109,7 +115,7 @@ class StaticPyprojectReader:
         elif _types.is_toml_array(value) and all(isinstance(x, str) for x in value):
             value = tuple(str(x) for x in value)
         else:
-            raise LookupError(
+            raise StaticMetadataMalformed(
                 f"Could not read {key!r}, data was not an array of strings!"
             )
 
@@ -121,9 +127,11 @@ class StaticPyprojectReader:
         value = self._read(key)
         if value is not None:
             if not _types.is_toml_array(value):
-                raise LookupError(f"Got non-array value for '{key}' in pyproject.toml.")
+                raise StaticMetadataMalformed(
+                    f"Got non-array value for '{key}' in pyproject.toml."
+                )
             elif not all(_is_well_formed_contact_info_entry(x) for x in value):
-                raise LookupError(
+                raise StaticMetadataMalformed(
                     f"Got a malformed value in '{key}' in pyproject.toml."
                 )
 
@@ -139,22 +147,22 @@ class StaticPyprojectReader:
             return None
 
         if not _types.is_toml_mapping(value):
-            raise ValueError(
+            raise StaticMetadataMalformed(
                 "Cannot read project.optional-dependencies because it is not a TOML "
                 "table."
             )
         map: dict[str, tuple[str, ...]] = {}
         for k, v in value.items():
             if not isinstance(k, str):
-                raise ValueError(
+                raise StaticMetadataMalformed(
                     f"Got non-string key in project.optional-dependencies: {k!r}"
                 )
             if not _types.is_toml_array(v):
-                raise ValueError(
+                raise StaticMetadataMalformed(
                     f"Value for project.optional-dependencies[{k}] is not an array."
                 )
             if any(not isinstance(x, str) for x in v):
-                raise ValueError(
+                raise StaticMetadataMalformed(
                     f"Got a non-string value in project.optional-dependencies[{k}]."
                 )
             map[k] = tuple(v)
@@ -165,7 +173,7 @@ class StaticPyprojectReader:
         for name, value in map.items():
             canonical = canonicalize_name(name)
             if canonical in canonicalized_map:
-                raise ValueError(
+                raise StaticMetadataMalformed(
                     f"optional-dependencies for '{canonical}' appear "
                     "multiple times in TOML data. This is valid TOML but not valid "
                     "package metadata. "

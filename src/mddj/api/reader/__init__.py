@@ -11,6 +11,14 @@ from .static_pyproject_reader import StaticPyprojectReader
 from .tox_reader import ToxReader
 
 
+class MissingRequiredField(LookupError):
+    pass
+
+
+class NotALowerBound(ValueError):
+    pass
+
+
 class Reader:
     """
     A Reader is an interface for data reading capabilities.
@@ -144,11 +152,14 @@ class Reader:
         if value is None:
             value = self.dynamic.name()
         if value is None:
-            raise LookupError("No Name found")
+            raise MissingRequiredField(
+                "No 'name' found in static or dynamic metadata. "
+                "The project is not a Python Package or did not build correctly."
+            )
         return value
 
     @_cached_methods.cached_method
-    def requires_python(self, *, lower_bound: bool = False) -> str:
+    def requires_python(self, *, lower_bound: bool = False) -> str | None:
         """
         Get the Requires-Python bound for the project.
 
@@ -156,17 +167,16 @@ class Reader:
             Only `>=` is supported. Any other comparator will produce a ValueError if
             `lower_bound` is set.
         """
-        if lower_bound:
-            return _requires_python_lower_bound(self._requires_python)
-        return self._requires_python
+        value = self._requires_python
+        if lower_bound and value is not None:
+            return _requires_python_lower_bound(value)
+        return value
 
     @functools.cached_property
-    def _requires_python(self) -> str:
+    def _requires_python(self) -> str | None:
         value = self.static.requires_python()
         if value is None:
             value = self.dynamic.requires_python()
-        if value is None:
-            raise LookupError("No Requires-Python data found")
         return value
 
     @_cached_methods.cached_method
@@ -176,7 +186,10 @@ class Reader:
         if value is None:
             value = self.dynamic.version()
         if value is None:
-            raise LookupError("No Version found")
+            raise MissingRequiredField(
+                "No 'version' found in static or dynamic metadata. "
+                "The project is not a Python Package or did not build correctly."
+            )
         return value
 
 
@@ -187,12 +200,12 @@ def _requires_python_lower_bound(req: str) -> str:
         if r.startswith(">="):
             lower_bounds.append(r[2:])
         elif r.startswith(">"):
-            raise ValueError(
+            raise NotALowerBound(
                 "Found a > requirement, rejecting as invalid (use '>=' instead)"
             )
     if len(lower_bounds) > 1:
-        raise ValueError("Found multiple lower bounds, cannot choose one")
+        raise NotALowerBound("Found multiple lower bounds, cannot choose one")
     elif len(lower_bounds) == 0:
-        raise ValueError("Found no lower bounds")
+        raise NotALowerBound("Found no lower bounds")
     else:
         return lower_bounds[0]
