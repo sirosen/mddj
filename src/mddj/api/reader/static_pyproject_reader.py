@@ -9,7 +9,7 @@ import typing as t
 import tomlkit
 from packaging.utils import canonicalize_name
 
-from ..._internal import _cached_toml, _types
+from ..._internal import _cached_methods, _cached_toml, _types
 
 
 class StaticPyprojectReader:
@@ -20,45 +20,58 @@ class StaticPyprojectReader:
     ) -> None:
         self._pyproject_path = pyproject_path
         self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
-        self._read_cache: dict[str, t.Any] = {}
+
+        self._method_cache: dict[t.Any, t.Any] = {}
 
     # supported public APIs follow, in alphabetical order
 
-    def authors(self) -> tuple[types.MappingProxyType[str, str], ...] | None:
+    @_cached_methods.cached_method
+    def authors(self, /) -> tuple[types.MappingProxyType[str, str], ...] | None:
         return self._read_contact_info("authors")
 
+    @_cached_methods.cached_method
     def classifiers(self) -> tuple[str, ...] | None:
         return self._read_string_array("classifiers")
 
+    @_cached_methods.cached_method
     def dependencies(self) -> tuple[str, ...] | None:
         return self._read_string_array("dependencies")
 
+    @_cached_methods.cached_method
     def description(self) -> str | None:
         return self._read_string("description")
 
+    @_cached_methods.cached_method
     def dynamic(self) -> tuple[str, ...] | None:
         return self._read_string_array("dynamic")
 
+    @_cached_methods.cached_method
     def import_names(self) -> tuple[str, ...] | None:
         return self._read_string_array("import-names")
 
+    @_cached_methods.cached_method
     def import_namespaces(self) -> tuple[str, ...] | None:
         return self._read_string_array("import-namespaces")
 
+    @_cached_methods.cached_method
     def keywords(self) -> tuple[str, ...] | None:
         return self._read_string_array("keywords")
 
+    @_cached_methods.cached_method
     def optional_dependencies(
         self,
     ) -> types.MappingProxyType[str, tuple[str, ...]] | None:
         return self._optional_dependencies
 
+    @_cached_methods.cached_method
     def name(self) -> str | None:
         return self._read_string("name")
 
+    @_cached_methods.cached_method
     def requires_python(self) -> str | None:
         return self._read_string("requires-python")
 
+    @_cached_methods.cached_method
     def version(self) -> str | None:
         return self._read_string("version")
 
@@ -77,9 +90,6 @@ class StaticPyprojectReader:
         return value
 
     def _read_string(self, key: str) -> str | None:
-        if key in self._read_cache:
-            return self._read_cache[key]  # type: ignore[no-any-return]
-
         value = self._read(key)
 
         if value is None:
@@ -89,13 +99,9 @@ class StaticPyprojectReader:
         else:
             raise LookupError(f"Could not read {key!r}, data was not a string!")
 
-        self._read_cache[key] = value
         return value
 
     def _read_string_array(self, key: str) -> tuple[str, ...] | None:
-        if key in self._read_cache:
-            return self._read_cache[key]  # type: ignore[no-any-return]
-
         value = self._read(key)
 
         if value is None:
@@ -107,15 +113,11 @@ class StaticPyprojectReader:
                 f"Could not read {key!r}, data was not an array of strings!"
             )
 
-        self._read_cache[key] = value
         return value
 
     def _read_contact_info(
         self, key: str
     ) -> tuple[types.MappingProxyType[str, str], ...] | None:
-        if key in self._read_cache:
-            return self._read_cache[key]  # type: ignore[no-any-return]
-
         value = self._read(key)
         if value is not None:
             if not _types.is_toml_array(value):
@@ -126,8 +128,6 @@ class StaticPyprojectReader:
                 )
 
             value = tuple(types.MappingProxyType(x) for x in value)
-
-        self._read_cache[key] = value
         return value
 
     @functools.cached_property

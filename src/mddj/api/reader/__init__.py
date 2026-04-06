@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import functools
 import types
+import typing as t
 
-from ..._internal import _cached_toml
+from ..._internal import _cached_methods, _cached_toml
 from ..config import ReaderConfig
 from .dynamic_package_reader import DynamicPackageReader
 from .static_pyproject_reader import StaticPyprojectReader
@@ -51,20 +52,25 @@ class Reader:
             capture_build_output=self.config.capture_build_output,
         )
 
+        self._method_cache: dict[t.Any, t.Any] = {}
+
     # supported metadata APIs, in alphabetical order
 
+    @_cached_methods.cached_method
     def authors(self) -> tuple[types.MappingProxyType[str, str], ...]:
         value = self.static.authors()
         if value is None:
             value = self.dynamic.authors()
         return value
 
+    @_cached_methods.cached_method
     def classifiers(self) -> tuple[str, ...]:
         value = self.static.classifiers()
         if value is None:
             value = self.dynamic.classifiers()
         return value
 
+    @_cached_methods.cached_method
     def dependencies(self) -> tuple[str, ...]:
         """
         Get the dependencies for the project.
@@ -78,30 +84,35 @@ class Reader:
             value = self.dynamic.dependencies()
         return value
 
+    @_cached_methods.cached_method
     def description(self) -> str | None:
         value = self.static.description()
         if value is None:
             value = self.dynamic.description()
         return value
 
+    @_cached_methods.cached_method
     def import_names(self) -> tuple[str, ...]:
         value = self.static.import_names()
         if value is None:
             value = self.dynamic.import_names()
         return value
 
+    @_cached_methods.cached_method
     def import_namespaces(self) -> tuple[str, ...]:
         value = self.static.import_namespaces()
         if value is None:
             value = self.dynamic.import_namespaces()
         return value
 
+    @_cached_methods.cached_method
     def keywords(self) -> tuple[str, ...]:
         value = self.static.keywords()
         if value is None:
             value = self.dynamic.keywords()
         return value
 
+    @_cached_methods.cached_method
     def optional_dependencies(
         self, *, exact_wheel_metadata: bool = False
     ) -> types.MappingProxyType[str, tuple[str, ...]]:
@@ -127,6 +138,7 @@ class Reader:
             exact_wheel_metadata=exact_wheel_metadata
         )
 
+    @_cached_methods.cached_method
     def name(self) -> str:
         value = self.static.name()
         if value is None:
@@ -135,6 +147,7 @@ class Reader:
             raise LookupError("No Name found")
         return value
 
+    @_cached_methods.cached_method
     def requires_python(self, *, lower_bound: bool = False) -> str:
         """
         Get the Requires-Python bound for the project.
@@ -156,6 +169,7 @@ class Reader:
             raise LookupError("No Requires-Python data found")
         return value
 
+    @_cached_methods.cached_method
     def version(self) -> str:
         """Get the version of the project."""
         value = self.static.version()
