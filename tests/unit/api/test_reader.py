@@ -5,6 +5,7 @@ import pytest
 
 from mddj.api.config import ReaderConfig
 from mddj.api.reader import Reader
+from mddj.api.reader.dynamic_package_reader import DynamicPackageReader
 
 
 def make_fake_package_metadata(
@@ -98,7 +99,9 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
     reader = Reader(reader_config)
 
     # replace the *descriptor*, not the instance value
-    monkeypatch.setattr(Reader, "_wheel_package_metadata", make_fake_package_metadata())
+    monkeypatch.setattr(
+        DynamicPackageReader, "_wheel_package_metadata", make_fake_package_metadata()
+    )
 
     method = getattr(reader, read_method)
     assert method() == expect_result
@@ -124,7 +127,7 @@ def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
 
     # replace the *descriptor*, not the instance value
     monkeypatch.setattr(
-        Reader,
+        DynamicPackageReader,
         "_wheel_package_metadata",
         make_fake_package_metadata(
             requires_dist=(
