@@ -41,7 +41,7 @@ dependencies = [
   "packaging",
   "build>=1.2.2",
   "pyproject_hooks>1",
-  "click>=8.2.0",
+  "click>=8.3.3",
   "tomlkit>=0.13.2",
   "typing_extensions; python_version<'3.13'",
 ]
