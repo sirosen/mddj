@@ -62,6 +62,10 @@ class StaticPyprojectReader:
         return self._read_string_array("keywords")
 
     @_cached_methods.cached_method
+    def maintainers(self, /) -> tuple[types.MappingProxyType[str, str], ...] | None:
+        return self._read_contact_info("maintainers")
+
+    @_cached_methods.cached_method
     def optional_dependencies(
         self,
     ) -> types.MappingProxyType[str, tuple[str, ...]] | None:

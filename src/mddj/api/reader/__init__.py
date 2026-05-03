@@ -121,6 +121,13 @@ class Reader:
         return value
 
     @_cached_methods.cached_method
+    def maintainers(self) -> tuple[types.MappingProxyType[str, str], ...]:
+        value = self.static.maintainers()
+        if value is None:
+            value = self.dynamic.maintainers()
+        return value
+
+    @_cached_methods.cached_method
     def optional_dependencies(
         self, *, exact_wheel_metadata: bool = False
     ) -> types.MappingProxyType[str, tuple[str, ...]]:
