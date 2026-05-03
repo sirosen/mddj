@@ -9,7 +9,7 @@ test = ["pytest", "pytest-xdist", { include-group = "coverage" }]
 
 
 [build-system]
-requires = ["flit-core>=3.11"]
+requires = ["flit-core>=3.12.0"]
 build-backend = "flit_core.buildapi"
 
 [project]
