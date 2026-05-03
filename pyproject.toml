@@ -42,7 +42,7 @@ dependencies = [
   "build>=1.2.2",
   "pyproject_hooks>1",
   "click>=8.3.3",
-  "tomlkit>=0.13.2",
+  "tomlkit>=0.14.0",
   "typing_extensions; python_version<'3.13'",
 ]
 import-names = ["mddj"]
