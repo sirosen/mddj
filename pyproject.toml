@@ -39,7 +39,7 @@ dependencies = [
   # will need it, so including it makes a wider range of usages work smoothly
   "wheel",
   "packaging",
-  "build>=1.2.2",
+  "build>=1.5.0",
   "pyproject_hooks>=1.2.0",
   "click>=8.3.3",
   "tomlkit>=0.14.0",
