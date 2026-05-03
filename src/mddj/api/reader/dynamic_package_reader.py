@@ -63,6 +63,10 @@ class DynamicPackageReader:
         return self._read_string_array("Keywords", mode="commasep")
 
     @_cached_methods.cached_method
+    def maintainers(self) -> tuple[types.MappingProxyType[str, str], ...]:
+        return self._read_contact_info("Maintainer", "Maintainer-email")
+
+    @_cached_methods.cached_method
     def optional_dependencies(
         self, *, exact_wheel_metadata: bool = False
     ) -> types.MappingProxyType[str, tuple[str, ...]]:
