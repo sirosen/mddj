@@ -94,7 +94,7 @@ def write_toml_value(
         # check string quoting style
         # update when the change for https://github.com/python-poetry/tomlkit/issues/443
         # is released
-        if old_value._t.is_literal():
+        if old_value.type.is_literal():
             write_value = tomlkit.string(value, literal=True)
         else:
             write_value = tomlkit.string(value)
