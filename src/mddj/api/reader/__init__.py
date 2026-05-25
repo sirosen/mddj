@@ -8,6 +8,7 @@ from ..._internal import _cached_methods, _cached_toml
 from ..config import ReaderConfig
 from .dynamic_package_reader import DynamicPackageReader
 from .static_pyproject_reader import StaticPyprojectReader
+from .system_info_reader import SystemInfoReader
 from .tox_reader import ToxReader
 
 
@@ -50,6 +51,7 @@ class Reader:
         self.config = config
 
         self.tox = ToxReader()
+        self.sys = SystemInfoReader()
         self.static = StaticPyprojectReader(
             self.config.pyproject_path,
             document_cache=document_cache or _cached_toml.TomlDocumentCache(),
