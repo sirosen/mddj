@@ -1,8 +1,17 @@
 Changelog
 =========
 
-.. Unreleased
-.. ----------
+Unreleased
+----------
+
+- Add a new ``DJ.read.sys`` API for reading system information, aligned with
+  Python packaging markers. ``sys`` provides the following methods:
+  ``implementation_name()``, ``implementation_version()``, ``os_name()``,
+  ``platform_machine()``, ``platform_release()``, ``platform_system()``,
+  ``platform_version()``, ``platform_python_implementation()``,
+  ``python_full_version()``, ``python_version()``, ``sys_platform()``
+- Add a new CLI subcommand, ``mddj read sys`` which provides access to each of
+  these metadata items.
 
 0.5.0
 -----
