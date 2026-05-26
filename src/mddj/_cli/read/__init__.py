@@ -13,6 +13,7 @@ from .maintainers import read_maintainers
 from .name import read_name
 from .optional_dependencies import read_optional_dependencies
 from .requires_python import read_requires_python
+from .sys import read_sys
 from .tox import read_tox
 from .version import read_version
 
@@ -36,4 +37,5 @@ read.add_command(read_optional_dependencies)
 read.add_command(read_requires_python)
 read.add_command(read_version)
 
+read.add_command(read_sys)
 read.add_command(read_tox)
