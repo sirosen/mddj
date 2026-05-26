@@ -46,11 +46,11 @@ class SystemInfoReader:
     def platform_version(self) -> str:
         return _platform.version()
 
-    def python_full_version(self) -> str:
-        return _platform.python_version()
-
     def platform_python_implementation(self) -> str:
         return _platform.python_implementation()
+
+    def python_full_version(self) -> str:
+        return _platform.python_version()
 
     def python_version(self) -> str:
         major, minor, _patch = _platform.python_version_tuple()
