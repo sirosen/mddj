@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import re
 import types
 import typing as t
 
@@ -74,10 +75,21 @@ class Reader:
         return value
 
     @_cached_methods.cached_method
-    def classifiers(self) -> tuple[str, ...]:
+    def classifiers(self, *, python_versions: bool = False) -> tuple[str, ...]:
+        """
+        Get the classifiers for the project.
+
+        :param python_versions: Set ``python_versions=True`` to extract MAJOR.MINOR
+            Python versions from classifiers.
+
+        Note that ``python_versions`` skips major-version-only classifiers.
+        """
         value = self.static.classifiers()
         if value is None:
             value = self.dynamic.classifiers()
+
+        if python_versions:
+            return _extract_python_versions_from_classifiers(value)
         return value
 
     @_cached_methods.cached_method
@@ -218,3 +230,17 @@ def _requires_python_lower_bound(req: str) -> str:
         raise NotALowerBound("Found no lower bounds")
     else:
         return lower_bounds[0]
+
+
+_CLASSIFIER_PATTERN = re.compile(r"Programming Language :: Python :: (\d+\.\d+)")
+
+
+def _extract_python_versions_from_classifiers(
+    classifiers: tuple[str, ...],
+) -> tuple[str, ...]:
+    result = []
+    for value in classifiers:
+        if not (match := _CLASSIFIER_PATTERN.fullmatch(value)):
+            continue
+        result.append(match.group(1))
+    return tuple(result)
