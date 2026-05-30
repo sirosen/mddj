@@ -50,6 +50,8 @@ class Reader:
         config: ReaderConfig,
         document_cache: _cached_toml.TomlDocumentCache | None = None,
     ) -> None:
+        document_cache = document_cache or _cached_toml.TomlDocumentCache()
+
         self.config = config
 
         self.tox = ToxReader()
@@ -62,8 +64,7 @@ class Reader:
             )
         )
         self.static = StaticPyprojectReader(
-            self.config.pyproject_path,
-            document_cache=document_cache or _cached_toml.TomlDocumentCache(),
+            self.config.pyproject_path, document_cache=document_cache
         )
         self.dynamic = DynamicPackageReader(
             self.config.project_directory,
