@@ -4,7 +4,8 @@ import pathlib
 import shlex
 import typing as t
 
-import ryaml
+# for some reason, mypy flags 'loads' as not explicitly exported
+from ryaml import loads as _ryaml_loads  # type: ignore[attr-defined]
 
 from ..._internal import _cached_methods, _toml_path
 from ..config import ReadthedocsConfig
@@ -49,7 +50,7 @@ class ReadthedocsReader:
     def _load_data(self) -> dict[str, t.Any]:
         content = self._config_path.read_text()
 
-        data = ryaml.loads(content)
+        data = _ryaml_loads(content)
         if not isinstance(data, dict):
             raise ValueError("Expected readthedocs config to parse as a dict.")
         return data
@@ -67,7 +68,9 @@ class ReadthedocsReader:
         config_body = self._load_data()
         value = config_body
         for part in self._parsed_version_path:
-            value = value[part]
+            # mypy flags that parts are 'int|str', but the config_body is declared as
+            # a 'dict[str, Any]'
+            value = value[part]  # type: ignore[index]
 
         if self._config.python_version_extraction == "verbatim":
             return _verbatim_process_parsed_version(value)
@@ -113,7 +116,8 @@ def _extract_uv_tool_install_version(commands: t.Any) -> str:
     parser.add_argument("--python")
     parsed_args, _ = parser.parse_known_args(split_cmd)
 
-    if parsed_args.python:
-        return parsed_args.python
+    parsed_python_version: str | None = parsed_args.python
+    if parsed_python_version:
+        return parsed_python_version
 
     raise LookupError("'uv tool install' command did not specify '--python'")

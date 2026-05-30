@@ -172,13 +172,14 @@ class WriteVersionAssignSettings:
         return cls(file_path=pathlib.Path(file_path), key=key)
 
 
+PythonVersionExtraction: t.TypeAlias = t.Literal["verbatim", "parse_uv_tool_install"]
+
+
 @dataclasses.dataclass
 class ReadthedocsConfig:
     project_directory: pathlib.Path
     python_version_path: str = "build.tools.python"
-    python_version_extraction: t.Literal["verbatim", "parse_uv_tool_install"] = (
-        "verbatim"
-    )
+    python_version_extraction: PythonVersionExtraction = "verbatim"
 
     @classmethod
     def load_from_toml(
@@ -215,7 +216,7 @@ class ReadthedocsConfig:
                         "'tool.mddj.readthedocs.python_version_path' must be a string"
                     )
 
-            py_ver_extraction = "verbatim"
+            py_ver_extraction: PythonVersionExtraction = "verbatim"
             if "python_version_extraction" in readthedocs_conf:
                 py_ver_extraction = readthedocs_conf["python_version_extraction"]
                 if py_ver_extraction not in ("verbatim", "parse_uv_tool_install"):
