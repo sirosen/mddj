@@ -46,14 +46,12 @@ def run_line(cli_runner):
             env=env,
         )
         if result.exit_code != assert_exit_code:
-            message = d(
-                f"""\
+            message = d(f"""\
                 CliTest run_line exit_code assertion failed!
                 Line:
                   {line}
                 exited with {result.exit_code} when expecting {assert_exit_code}
-                """
-            )
+                """)
             if _PYTEST_VERBOSE:
                 message += (
                     "\n\nstdout:\n"

@@ -15,12 +15,10 @@ def test_read_string_table_key(tmp_path, document_cache):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [project]
             version = "1.0.0"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -34,15 +32,13 @@ def test_read_array_members(tmp_path, document_cache):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [mytable]
             items = [
                 "foo",
                 "bar",
             ]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -56,12 +52,10 @@ def test_read_bad_lookup_noncontainer(tmp_path, document_cache):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [mytable]
             foo = "bar"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -75,12 +69,10 @@ def test_read_bad_lookup_wrong_index_type(tmp_path, document_cache):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [mytable]
             foo = ["bar"]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 

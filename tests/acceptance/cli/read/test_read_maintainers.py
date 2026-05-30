@@ -8,8 +8,7 @@ import pytest
 def test_read_maintainers_from_pyproject(chdir, tmp_path, run_line, onlyopt):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [build-system]
             requires = ["setuptools"]
             build-backend = "setuptools.build_meta"
@@ -20,8 +19,7 @@ def test_read_maintainers_from_pyproject(chdir, tmp_path, run_line, onlyopt):
             maintainers = [
               { name = "Foo", email = "foo@example.org" },
             ]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "foopkg.py").touch()
@@ -46,16 +44,14 @@ def test_read_maintainers_from_build(chdir, tmp_path, run_line, onlyopt):
     setupcfg = tmp_path / "setup.cfg"
 
     setupcfg.write_text(
-        d(
-            """\
+        d("""\
             [metadata]
             name = foopkg
             version = 1.0.0
 
             maintainer = Foo
             maintainer_email = foo@example.org
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "setup.py").write_text(

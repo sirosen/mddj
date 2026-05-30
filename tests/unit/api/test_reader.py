@@ -87,12 +87,10 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
     expect_result,
 ):
     reader_config.pyproject_path.write_text(
-        d(
-            f"""\
+        d(f"""\
             [project]
             {pyproject_fieldname} = {toml_value}
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -111,15 +109,13 @@ def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
     reader_config, monkeypatch
 ):
     reader_config.pyproject_path.write_text(
-        d(
-            """\
+        d("""\
             [project]
             dynamic = [
                 "name", "version", "description", "keywords", "requires-python",
                 "dependencies", "optional-dependencies"
             ]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 

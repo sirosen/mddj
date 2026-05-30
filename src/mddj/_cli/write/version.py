@@ -13,11 +13,9 @@ def write_version(*, new_version: str, state: CommandState) -> None:
     except LookupError as e:
         click.echo(str(e))
         click.get_current_context().exit(1)
-    click.echo(
-        f"""\
+    click.echo(f"""\
 Version was updated. write_version='{state.dj.write.config.write_version}'
 
 old value: {result}
 new value: {new_version}
-"""
-    )
+""")

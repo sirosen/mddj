@@ -9,115 +9,95 @@ def test_write_table_key(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [project]
             version = "1.0.0"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     write_result = _writers.write_toml_value(pyproject, "project.version", "1.1.0")
     assert write_result == "1.0.0"
-    assert pyproject.read_text() == d(
-        """\
+    assert pyproject.read_text() == d("""\
         [project]
         version = "1.1.0"
-        """
-    )
+        """)
 
 
 def test_write_inline_table_key(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             project = {version = "1.0.0"}
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     write_result = _writers.write_toml_value(pyproject, "project.version", "1.1.0")
     assert write_result == "1.0.0"
-    assert pyproject.read_text() == d(
-        """\
+    assert pyproject.read_text() == d("""\
         project = {version = "1.1.0"}
-        """
-    )
+        """)
 
 
 def test_write_at_top_level(tmp_path):
     config = tmp_path / "config.toml"
 
     config.write_text(
-        d(
-            """\
+        d("""\
             version = "1.0.0"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     write_result = _writers.write_toml_value(config, "version", "1.1.0")
     assert write_result == "1.0.0"
-    assert config.read_text() == d(
-        """\
+    assert config.read_text() == d("""\
         version = "1.1.0"
-        """
-    )
+        """)
 
 
 def test_write_array_element(tmp_path):
     config = tmp_path / "config.toml"
 
     config.write_text(
-        d(
-            """\
+        d("""\
             flags = [
                 "--verbose",
                 "--okay",
             ]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     write_result = _writers.write_toml_value(config, "flags.0", "--quiet")
     assert write_result == "--verbose"
-    assert config.read_text() == d(
-        """\
+    assert config.read_text() == d("""\
         flags = [
             "--quiet",
             "--okay",
         ]
-        """
-    )
+        """)
 
 
 def test_write_aot_table(tmp_path):
     config = tmp_path / "config.toml"
 
     config.write_text(
-        d(
-            """\
+        d("""\
             [[projects]]
             version = "1.0.0"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     write_result = _writers.write_toml_value(config, "projects.0.version", "1.1.0")
     assert write_result == "1.0.0"
-    assert config.read_text() == d(
-        """\
+    assert config.read_text() == d("""\
         [[projects]]
         version = "1.1.0"
-        """
-    )
+        """)
 
 
 def test_error_on_empty_path():
@@ -129,12 +109,10 @@ def test_top_level_key_must_be_str(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [project]
             version = "1.0.0"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -148,12 +126,10 @@ def test_terminal_non_string_lookup_error(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [project]
             version = ["1.0.0"]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -165,12 +141,10 @@ def test_scalar_value_at_destination(tmp_path):
     config = tmp_path / "config.toml"
 
     config.write_text(
-        d(
-            """\
+        d("""\
             [foo]
             bar = "1.0.0"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -185,12 +159,10 @@ def test_traversal_crosses_scalar_value(tmp_path):
     config = tmp_path / "config.toml"
 
     config.write_text(
-        d(
-            """\
+        d("""\
             [foo]
             bar = "1.0.0"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 

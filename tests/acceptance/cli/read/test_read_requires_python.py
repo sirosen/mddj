@@ -8,8 +8,7 @@ def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [build-system]
             requires = ["setuptools"]
             build-backend = "setuptools.build_meta"
@@ -21,8 +20,7 @@ def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
               { name = "Foo", email = "foo@example.org" },
             ]
             requires-python = ">=3.11"
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "foopkg.py").touch()
@@ -40,8 +38,7 @@ def test_read_python_requires_from_setupcfg(chdir, tmp_path, run_line, capfd):
     setupcfg = tmp_path / "setup.cfg"
 
     setupcfg.write_text(
-        d(
-            """\
+        d("""\
             [metadata]
             name = foopkg
             version = 1.0.0
@@ -51,8 +48,7 @@ def test_read_python_requires_from_setupcfg(chdir, tmp_path, run_line, capfd):
 
             [options]
             python_requires = >=3.10
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "setup.py").write_text(

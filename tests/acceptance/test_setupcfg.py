@@ -7,8 +7,7 @@ def test_read_python_requires_with_full_build_output_shows_all_data(
     setupcfg = tmp_path / "setup.cfg"
 
     setupcfg.write_text(
-        d(
-            """\
+        d("""\
             [metadata]
             name = foopkg
             version = 1.0.0
@@ -18,8 +17,7 @@ def test_read_python_requires_with_full_build_output_shows_all_data(
 
             [options]
             python_requires = >=3.10
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "setup.py").write_text(

@@ -5,8 +5,7 @@ def test_read_static_optional_deps(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [build-system]
             requires = ["setuptools"]
             build-backend = "setuptools.build_meta"
@@ -18,30 +17,26 @@ def test_read_static_optional_deps(chdir, tmp_path, run_line):
             [project.optional-dependencies]
             foo = ["bar<2"]
             baz = ["bar>3", "quux > 4.8"]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     with chdir(tmp_path):
         result = run_line("mddj read optional-dependencies")
-        assert result.stdout == d(
-            """\
+        assert result.stdout == d("""\
             foo:
                 bar<2
             baz:
                 bar>3
                 quux > 4.8
-            """
-        )
+            """)
 
 
 def test_read_static_optional_deps_non_normalized(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [build-system]
             requires = ["setuptools"]
             build-backend = "setuptools.build_meta"
@@ -52,20 +47,17 @@ def test_read_static_optional_deps_non_normalized(chdir, tmp_path, run_line):
 
             [project.optional-dependencies]
             foo_bar = ["baz"]  # not normalized!
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     with chdir(tmp_path):
         result = run_line("mddj read optional-dependencies")
         # printed out normalized
-        assert result.stdout == d(
-            """\
+        assert result.stdout == d("""\
             foo-bar:
                 baz
-            """
-        )
+            """)
 
     with chdir(tmp_path):
         # selected non-normalized (will normalize)
@@ -77,8 +69,7 @@ def test_read_static_optional_deps_select_one(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [build-system]
             requires = ["setuptools"]
             build-backend = "setuptools.build_meta"
@@ -90,27 +81,23 @@ def test_read_static_optional_deps_select_one(chdir, tmp_path, run_line):
             [project.optional-dependencies]
             foo = ["bar<2", "snork"]
             baz = ["bar>3", "quux > 4.8"]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     with chdir(tmp_path):
         result = run_line("mddj read optional-dependencies --extra foo")
-        assert result.stdout == d(
-            """\
+        assert result.stdout == d("""\
             bar<2
             snork
-            """
-        )
+            """)
 
 
 def test_read_static_optional_deps_select_one_does_not_exist(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [build-system]
             requires = ["setuptools"]
             build-backend = "setuptools.build_meta"
@@ -122,8 +109,7 @@ def test_read_static_optional_deps_select_one_does_not_exist(chdir, tmp_path, ru
             [project.optional-dependencies]
             foo = ["bar<2", "snork"]
             a_real_empty_extra = []
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
@@ -145,8 +131,7 @@ def test_read_dynamic_optional_deps_strip_extras(chdir, tmp_path, run_line):
     setuppy = tmp_path / "setup.py"
 
     setuppy.write_text(
-        d(
-            """\
+        d("""\
             from setuptools import setup
 
 
@@ -170,8 +155,7 @@ def test_read_dynamic_optional_deps_strip_extras(chdir, tmp_path, run_line):
                     "better_tb": ["better_tracebacks"],
                 },
             )
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "foopkg.py").touch()
@@ -183,8 +167,7 @@ def test_read_dynamic_optional_deps_strip_extras(chdir, tmp_path, run_line):
     # and the sneaky thing added via an extra marker comes first
     # the ordering is not be guaranteed to be stable over time, but it keeps the test
     # simpler to assume it this way for now
-    assert result.stdout == d(
-        """\
+    assert result.stdout == d("""\
         cli:
             rich
             colorama; platform_system == "Windows" or implementation_name != "cpython"
@@ -192,16 +175,14 @@ def test_read_dynamic_optional_deps_strip_extras(chdir, tmp_path, run_line):
             better_tracebacks
         better-tb:
             better_tracebacks
-        """
-    )
+        """)
 
 
 def test_read_dynamic_optional_deps_exact(chdir, tmp_path, run_line):
     setuppy = tmp_path / "setup.py"
 
     setuppy.write_text(
-        d(
-            """\
+        d("""\
             from setuptools import setup
 
 
@@ -225,8 +206,7 @@ def test_read_dynamic_optional_deps_exact(chdir, tmp_path, run_line):
                     "better_tb": ["better_tracebacks"],
                 },
             )
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "foopkg.py").touch()
@@ -235,8 +215,7 @@ def test_read_dynamic_optional_deps_exact(chdir, tmp_path, run_line):
         result = run_line("mddj read optional-dependencies --exact-wheel-metadata")
 
     # WARNING: this output is highly dependent on exact setuptools behavior
-    assert result.stdout == d(
-        """\
+    assert result.stdout == d("""\
         cli:
             rich; extra == "cli"
             colorama; (platform_system == "Windows" or implementation_name != "cpython") and extra == "cli"
@@ -244,5 +223,4 @@ def test_read_dynamic_optional_deps_exact(chdir, tmp_path, run_line):
             better_tracebacks; extra == "cli"
         better-tb:
             better_tracebacks; extra == "better-tb"
-        """  # noqa: E501
-    )
+        """)  # noqa: E501

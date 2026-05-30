@@ -5,14 +5,12 @@ import pytest
 
 def test_read_import_namespaces_from_pyproject_toml(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
-    toml_text = d(
-        """\
+    toml_text = d("""\
         [project]
         name = "mypkg"
         version = "1.2.4"
         import-namespaces = ["mypkg"]
-        """
-    )
+        """)
     pyproject.write_text(toml_text, encoding="utf-8")
 
     with chdir(tmp_path):
@@ -26,8 +24,7 @@ def test_read_import_namespaces_from_hatchling_build(chdir, tmp_path, run_line):
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
-        d(
-            """\
+        d("""\
             [build-system]
             requires = ["hatchling==1.28.0"]
             build-backend = "hatchling.build"
@@ -38,15 +35,13 @@ def test_read_import_namespaces_from_hatchling_build(chdir, tmp_path, run_line):
             name = "foopkg"
             version = "1.0.0"
             dynamic = ["import-namespaces"]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
 
     # create a hatch_build which populates import-namespaces based on the package name
     (tmp_path / "hatch_build.py").write_text(
-        d(
-            """\
+        d("""\
             from hatchling.metadata.plugin.interface import MetadataHookInterface
 
 
@@ -54,8 +49,7 @@ def test_read_import_namespaces_from_hatchling_build(chdir, tmp_path, run_line):
                 def update(self, metadata):
                     name = metadata["name"]
                     metadata["import-namespaces"] = [name, f"{name}.api"]
-            """
-        ),
+            """),
         encoding="utf-8",
     )
     (tmp_path / "foopkg.py").touch()
