@@ -47,6 +47,42 @@ Or the ``version`` key in ``setup.cfg``:
     write_version = "assign: setup.cfg: version"
 
 
+``tool.mddj.readthedocs.python_version_path``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This setting controls the lookup path inside of ``.readthedocs.yaml`` or
+``.readthedocs.yml`` which will be used for the ReadTheDocs reader to find the
+python version.
+This should be a path in dotted notation, for example, ``"build.commands"``.
+
+Depending on how the reader is configured (see ``python_version_extraction``
+below), the path should be either to the version itself, or to a command  or
+commands which can be further parsed.
+
+Defaults to ``"build.tools.python"``.
+
+
+``tool.mddj.readthedocs.python_version_extraction``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The method which should be used to interpret the ``python_version_path``.
+
+``"verbatim"``, the default, means that the value found at the version path is
+the Python version.
+
+``"parse_uv_tool_install"`` means that the path is to a command or list of
+commands, and the data should be parsed for an invocation of
+``uv tool install ... --python X.Y``.
+
+For example, this can be combined with a parse path as follows:
+
+.. code-block:: toml
+
+    [tool.mddj.readthedocs]
+    python_version_path = "build.commands"
+    python_version_extraction = "parse_uv_tool_install"
+
+
 Environment Variables
 ---------------------
 

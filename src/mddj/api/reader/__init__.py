@@ -6,8 +6,9 @@ import types
 import typing as t
 
 from ..._internal import _cached_methods, _cached_toml
-from ..config import ReaderConfig
+from ..config import ReaderConfig, ReadthedocsConfig
 from .dynamic_package_reader import DynamicPackageReader
+from .readthedocs_reader import ReadthedocsReader
 from .static_pyproject_reader import StaticPyprojectReader
 from .system_info_reader import SystemInfoReader
 from .tox_reader import ToxReader
@@ -49,13 +50,21 @@ class Reader:
         config: ReaderConfig,
         document_cache: _cached_toml.TomlDocumentCache | None = None,
     ) -> None:
+        document_cache = document_cache or _cached_toml.TomlDocumentCache()
+
         self.config = config
 
         self.tox = ToxReader()
         self.sys = SystemInfoReader()
+        self.readthedocs = ReadthedocsReader(
+            ReadthedocsConfig.load_from_toml(
+                project_directory=self.config.project_directory,
+                pyproject_path=config.pyproject_path,
+                document_cache=document_cache,
+            )
+        )
         self.static = StaticPyprojectReader(
-            self.config.pyproject_path,
-            document_cache=document_cache or _cached_toml.TomlDocumentCache(),
+            self.config.pyproject_path, document_cache=document_cache
         )
         self.dynamic = DynamicPackageReader(
             self.config.project_directory,

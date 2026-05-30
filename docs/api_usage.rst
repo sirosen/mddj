@@ -74,10 +74,13 @@ Readers
 .. autoclass:: mddj.api.reader.Reader
     :members:
 
-.. autoclass:: mddj.api.tox_reader.ToxReader
+.. autoclass:: mddj.api.reader.tox_reader.ToxReader
     :members:
 
-.. autoclass:: mddj.api.tox_reader.ToxReaderError
+.. autoclass:: mddj.api.reader.tox_reader.ToxReaderError
+    :members:
+
+.. autoclass:: mddj.api.reader.readthedocs_reader.ReadthedocsReader
     :members:
 
 Writers

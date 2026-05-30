@@ -1,3 +1,4 @@
+import functools
 import typing as t
 
 P = t.ParamSpec("P")
@@ -33,6 +34,7 @@ def cached_method(
     The object being decorated must have a ``_method_cache`` attribute.
     """
 
+    @functools.wraps(method)
     def wrapper(instance: X, /, *args: t.Any, **kwargs: t.Any) -> R:
         cache = instance._method_cache
         key = _make_key(method.__name__, args, kwargs)
