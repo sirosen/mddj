@@ -80,6 +80,9 @@ Readers
 .. autoclass:: mddj.api.reader.tox_reader.ToxReaderError
     :members:
 
+.. autoclass:: mddj.api.reader.readthedocs_reader.ReadthedocsReader
+    :members:
+
 Writers
 ^^^^^^^
 

@@ -12,6 +12,9 @@ Unreleased
   ``python_full_version()``, ``python_version()``, ``sys_platform()``
 - Add a new CLI subcommand, ``mddj read sys`` which provides access to each of
   these metadata items.
+- Add a new ``DJ.read.readthedocs`` API for reading data from a ``.readthedocs.yaml`` config.
+  Currently supports ``python_version()`` for getting the version declared.
+- Add a new CLI command, ``mddj read readthedocs project-version``
 
 0.5.0
 -----
