@@ -39,6 +39,7 @@ dependencies = [
   # will need it, so including it makes a wider range of usages work smoothly
   "wheel",
   "packaging",
+  "ryaml>=0.5.1",
   "build>=1.5.0",
   "pyproject_hooks>=1.2.0",
   "click>=8.3.3",
@@ -57,6 +58,11 @@ mddj = "mddj._cli:main"
 [tool.flit.sdist]
 include = ["changelog.rst", "tests/**/*.py", "tox.ini", ".flake8", "justfile"]
 exclude = [".*", "src/**/.*"]
+
+
+[tool.mddj.readthedocs]
+python_version_path = "build.commands"
+python_version_extraction = "parse_uv_tool_install"
 
 
 [tool.check-sdist]
