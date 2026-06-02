@@ -51,6 +51,14 @@ jobs:
             tox_command: 'run -e py-tox3'
           - name: tox v4
             tox_command: 'run -e py-tox4'
+        include:
+          - os:
+              name: Linux
+              runner: ubuntu-latest
+            py: '3.13'
+            factor:
+              name: docs
+              tox_command: 'run -e docs'
 
     name: "Test (${{ matrix.factor.name }}) ${{ matrix.os.name }} x Python ${{ matrix.py }}"
     runs-on: ${{ matrix.os.runner }}
