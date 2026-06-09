@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 
 from mddj.api.config import ReaderConfig
+from mddj.api.discovery import DirExplorer
 from mddj.api.reader import Reader
 from mddj.api.reader.dynamic_package_reader import DynamicPackageReader
 
@@ -50,13 +51,16 @@ def make_fake_package_metadata(
 
 
 @pytest.fixture
-def reader_config(tmp_path, chdir):
-    pyproject_path = tmp_path / "pyproject.toml"
+def pyproject_path(tmp_path):
+    return tmp_path / "pyproject.toml"
 
+
+@pytest.fixture
+def reader_config(tmp_path, chdir):
     with chdir(tmp_path):
         yield ReaderConfig(
-            pyproject_path=pyproject_path,
-            project_directory=tmp_path,
+            dir_explorer=DirExplorer(tmp_path),
+            project_directory=None,
             isolated_builds=True,
             capture_build_output=True,
         )
@@ -79,6 +83,7 @@ def reader_config(tmp_path, chdir):
     ],
 )
 def test_metadata_reader_prefers_fields_from_static_metadata(
+    pyproject_path,
     reader_config,
     monkeypatch,
     read_method,
@@ -86,7 +91,7 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
     toml_value,
     expect_result,
 ):
-    reader_config.pyproject_path.write_text(
+    pyproject_path.write_text(
         d(f"""\
             [project]
             {pyproject_fieldname} = {toml_value}
@@ -106,9 +111,9 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
 
 
 def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
-    reader_config, monkeypatch
+    pyproject_path, reader_config, monkeypatch
 ):
-    reader_config.pyproject_path.write_text(
+    pyproject_path.write_text(
         d("""\
             [project]
             dynamic = [

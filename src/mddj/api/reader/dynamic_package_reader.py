@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import email.utils
 import functools
-import pathlib
 import types
 import typing as t
 
 from ..._internal import _cached_methods, _wheel_metadata
+from ..discovery import DirExplorer
 
 try:
     import importlib_metadata as _importlib_metadata
@@ -17,12 +17,12 @@ except ImportError:
 class DynamicPackageReader:
     def __init__(
         self,
-        project_directory: pathlib.Path,
+        dir_explorer: DirExplorer,
         *,
         isolated_builds: bool = True,
         capture_build_output: bool = True,
     ) -> None:
-        self._project_directory = project_directory
+        self._dir_explorer = dir_explorer
         self._isolated_builds = isolated_builds
         self._capture_build_output = capture_build_output
 
@@ -106,7 +106,7 @@ class DynamicPackageReader:
     @functools.cached_property
     def _wheel_package_metadata(self) -> _importlib_metadata.PackageMetadata:
         return _wheel_metadata.get_package_metadata(
-            self._project_directory,
+            self._dir_explorer.search_for("python-package").dirpath,
             isolated=self._isolated_builds,
             quiet=self._capture_build_output,
         )

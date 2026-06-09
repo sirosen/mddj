@@ -8,6 +8,7 @@ import sys
 import typing as t
 
 from .._internal import _cached_toml
+from .discovery import DirExplorer
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -37,7 +38,7 @@ class DJConfig:
     - ``capture_build_output``: ``MDDJ_CAPTURE_BUILD_OUTPUT``
     """
 
-    #: The starting directory for project dir discovery. Defaults to cwd.
+    #: The starting directory for discovery. Defaults to cwd.
     discovery_start_dir: pathlib.Path = dataclasses.field(
         default_factory=pathlib.Path.cwd
     )
@@ -61,8 +62,8 @@ class ReaderConfig:
     Configuration for a metadata reader.
     """
 
-    project_directory: pathlib.Path
-    pyproject_path: pathlib.Path
+    dir_explorer: DirExplorer
+    project_directory: pathlib.Path | None
     isolated_builds: bool
     capture_build_output: bool
 
@@ -73,6 +74,7 @@ class WriterConfig:
     Configuration for a metadata writer.
     """
 
+    dir_explorer: DirExplorer
     project_directory: pathlib.Path
     write_version: str = "toml: pyproject.toml: project.version"
 
@@ -80,14 +82,19 @@ class WriterConfig:
     def load_from_toml(
         cls,
         *,
-        project_directory: pathlib.Path,
-        pyproject_path: pathlib.Path,
+        dir_explorer: DirExplorer,
+        project_directory: pathlib.Path | None,
         document_cache: _cached_toml.TomlDocumentCache,
     ) -> Self:
         import tomlkit
 
+        if project_directory is None:
+            project_directory = dir_explorer.search_for("python-package").dirpath
+
+        pyproject_path = project_directory / "pyproject.toml"
+
         if not pyproject_path.exists():
-            return cls(project_directory=project_directory)
+            return cls(dir_explorer=dir_explorer, project_directory=project_directory)
 
         data = document_cache.load(pyproject_path)
 
@@ -103,9 +110,13 @@ class WriterConfig:
             if not isinstance(write_version, str):
                 raise KeyError("'tool.mddj.write_version' must be a str")
         except KeyError:
-            return cls(project_directory=project_directory)
+            return cls(dir_explorer, project_directory=project_directory)
 
-        return cls(project_directory=project_directory, write_version=write_version)
+        return cls(
+            dir_explorer,
+            project_directory=project_directory,
+            write_version=write_version,
+        )
 
     @functools.cached_property
     def write_version_settings(self) -> WriteVersionSettings:
@@ -177,7 +188,7 @@ PythonVersionExtraction: t.TypeAlias = t.Literal["verbatim", "parse_uv_tool_inst
 
 @dataclasses.dataclass
 class ReadthedocsConfig:
-    project_directory: pathlib.Path
+    dir_explorer: DirExplorer
     python_version_path: str = "build.tools.python"
     python_version_extraction: PythonVersionExtraction = "verbatim"
 
@@ -185,16 +196,15 @@ class ReadthedocsConfig:
     def load_from_toml(
         cls,
         *,
-        project_directory: pathlib.Path,
-        pyproject_path: pathlib.Path,
+        dir_explorer: DirExplorer,
         document_cache: _cached_toml.TomlDocumentCache,
     ) -> Self:
         import tomlkit
 
-        if not pyproject_path.exists():
-            return cls(project_directory)
+        if not dir_explorer.pyproject_path:
+            return cls(dir_explorer)
 
-        data = document_cache.load(pyproject_path)
+        data = document_cache.load(dir_explorer.pyproject_path)
 
         try:
             tool_table = data["tool"]
@@ -225,10 +235,10 @@ class ReadthedocsConfig:
                         "be either 'verbatim' or 'parse_uv_tool_install'."
                     )
         except KeyError:
-            return cls(project_directory)
+            return cls(dir_explorer)
 
         return cls(
-            project_directory,
+            dir_explorer,
             python_version_path=py_ver_path,
             python_version_extraction=py_ver_extraction,
         )

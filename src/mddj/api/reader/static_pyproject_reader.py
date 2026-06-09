@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import collections.abc
 import functools
-import pathlib
 import types
 import typing as t
 
@@ -10,6 +9,7 @@ import tomlkit
 from packaging.utils import canonicalize_name
 
 from ..._internal import _cached_methods, _cached_toml, _types
+from ..discovery import DirExplorer
 
 
 class StaticMetadataMalformed(ValueError):
@@ -19,10 +19,10 @@ class StaticMetadataMalformed(ValueError):
 class StaticPyprojectReader:
     def __init__(
         self,
-        pyproject_path: pathlib.Path,
+        dir_explorer: DirExplorer,
         document_cache: _cached_toml.TomlDocumentCache | None = None,
     ) -> None:
-        self._pyproject_path = pyproject_path
+        self._dir_explorer = dir_explorer
         self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
 
         self._method_cache: dict[t.Any, t.Any] = {}
@@ -87,7 +87,9 @@ class StaticPyprojectReader:
 
     @functools.cached_property
     def _document(self) -> tomlkit.TOMLDocument:
-        return self._document_cache.load(self._pyproject_path)
+        if (path := self._dir_explorer.pyproject_path) is None:
+            raise LookupError("no pyproject.toml found")
+        return self._document_cache.load(path)
 
     def _read(self, key: str) -> object | None:
         try:
