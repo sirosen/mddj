@@ -76,7 +76,7 @@ class ToxReader:
         versions = set()
         for envname in self._tox_listenvs:
             for part in envname.split("-"):
-                if match := re.match(r"py(\d)\.?(\d+)", part):
+                if match := re.match(r"(?:py)?(\d)\.?(\d+)", part):
                     versions.add(match.group(1) + "." + match.group(2))
         return tuple(versions)
 
