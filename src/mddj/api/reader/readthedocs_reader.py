@@ -36,14 +36,15 @@ class ReadthedocsReader:
 
     @functools.cached_property
     def _config_path(self) -> pathlib.Path:
-        yaml_path = self._config.project_directory / ".readthedocs.yaml"
+        rtd_dir = self._config.dir_explorer.search_for("readthedocs").dirpath
+        yaml_path = rtd_dir / ".readthedocs.yaml"
         if yaml_path.exists():
             return yaml_path
-        yml_path = self._config.project_directory / ".readthedocs.yml"
+        yml_path = rtd_dir / ".readthedocs.yml"
         if yml_path.exists():
             return yml_path
-        raise ReadthedocsConfigNotFoundError(
-            "No ReadTheDocs configuration was detected."
+        raise NotImplementedError(
+            "No ReadTheDocs configuration was found, even though dir detection passed."
         )
 
     @_cached_methods.cached_method

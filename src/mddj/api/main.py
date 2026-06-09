@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import functools
-import pathlib
 
-from .._internal import _cached_toml, _discovery
+from .._internal import _cached_toml
 from .config import DJConfig, ReaderConfig, WriterConfig
+from .discovery import DirExplorer
 from .reader import Reader
 from .writer import Writer
 
@@ -24,32 +24,17 @@ class DJ:
         self._document_cache = _cached_toml.TomlDocumentCache()
 
     @functools.cached_property
-    def project_directory(self) -> pathlib.Path:
-        """
-        The directory where project metadata can be found.
-
-        By default, this is automatically discovered on first access, but it can also be
-        explicitly set via config.
-        """
-        if self.config.project_dir is not None:
-            return self.config.project_dir
-
-        return _discovery.discover_project_dir(self.config.discovery_start_dir)
-
-    @functools.cached_property
-    def pyproject_path(self) -> pathlib.Path:
-        """
-        The path to the pyproject.toml file which will be used to read and write
-        metadata. The file may not actually exist, and this will not raise errors.
-        """
-        return self.project_directory / "pyproject.toml"
+    def dir_explorer(self) -> DirExplorer:
+        return DirExplorer(
+            self.config.discovery_start_dir, document_cache=self._document_cache
+        )
 
     @functools.cached_property
     def read(self) -> Reader:
         """A Reader configured via this DJ."""
         config = ReaderConfig(
-            project_directory=self.project_directory,
-            pyproject_path=self.pyproject_path,
+            dir_explorer=self.dir_explorer,
+            project_directory=self.config.project_dir,
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
         )
@@ -59,8 +44,8 @@ class DJ:
     def write(self) -> Writer:
         """A Writer configured via this DJ."""
         config = WriterConfig.load_from_toml(
-            project_directory=self.project_directory,
-            pyproject_path=self.pyproject_path,
+            dir_explorer=self.dir_explorer,
+            project_directory=self.config.project_dir,
             document_cache=self._document_cache,
         )
         return Writer(config, document_cache=self._document_cache)

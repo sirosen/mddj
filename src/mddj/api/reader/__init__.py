@@ -39,10 +39,6 @@ class Reader:
         >>> dj = DJ()
         >>> dj.read.version()
         '0.1.0'
-
-    :ivar tox: a :class:`ToxReader` provided by this reader
-    :ivar static: a :class:`StaticPyprojectReader` provided by this reader
-    :ivar dynamic: a :class:`DynamicPackageReader` provided by this reader
     """
 
     def __init__(
@@ -50,29 +46,43 @@ class Reader:
         config: ReaderConfig,
         document_cache: _cached_toml.TomlDocumentCache | None = None,
     ) -> None:
-        document_cache = document_cache or _cached_toml.TomlDocumentCache()
-
+        self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
         self.config = config
+        self._method_cache: dict[t.Any, t.Any] = {}
 
-        self.tox = ToxReader()
-        self.sys = SystemInfoReader()
-        self.readthedocs = ReadthedocsReader(
+    @functools.cached_property
+    def tox(self) -> ToxReader:
+        """a :class:`ToxReader` provided by this reader"""
+        return ToxReader()
+
+    @functools.cached_property
+    def sys(self) -> SystemInfoReader:
+        return SystemInfoReader()
+
+    @functools.cached_property
+    def readthedocs(self) -> ReadthedocsReader:
+        return ReadthedocsReader(
             ReadthedocsConfig.load_from_toml(
-                project_directory=self.config.project_directory,
-                pyproject_path=config.pyproject_path,
-                document_cache=document_cache,
+                dir_explorer=self.config.dir_explorer,
+                document_cache=self._document_cache,
             )
         )
-        self.static = StaticPyprojectReader(
-            self.config.pyproject_path, document_cache=document_cache
+
+    @functools.cached_property
+    def static(self) -> StaticPyprojectReader:
+        """a :class:`StaticPyprojectReader` provided by this reader"""
+        return StaticPyprojectReader(
+            self.config.dir_explorer, document_cache=self._document_cache
         )
-        self.dynamic = DynamicPackageReader(
-            self.config.project_directory,
+
+    @functools.cached_property
+    def dynamic(self) -> DynamicPackageReader:
+        """a :class:`DynamicPackageReader` provided by this reader"""
+        return DynamicPackageReader(
+            self.config.dir_explorer,
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
         )
-
-        self._method_cache: dict[t.Any, t.Any] = {}
 
     # supported metadata APIs, in alphabetical order
 
