@@ -5,6 +5,10 @@ import functools
 import pathlib
 import typing as t
 
+import tomlkit
+
+from .._internal import _cached_toml, _types
+
 Characteristic: t.TypeAlias = t.Literal[
     "pyproject", "python-package", "tox", "readthedocs", "vcs-root"
 ]
@@ -12,8 +16,15 @@ _VCS_INDICATORS: tuple[str, ...] = (".git", ".hg", ".svn")
 
 
 class DirExplorer:
-    def __init__(self, default_start_dir: pathlib.Path) -> None:
+    def __init__(
+        self,
+        default_start_dir: pathlib.Path,
+        *,
+        document_cache: _cached_toml.TomlDocumentCache | None = None,
+    ) -> None:
         self.default_start_dir = default_start_dir
+
+        self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
 
         # all nodes in a flat cache
         self._node_cache: dict[pathlib.Path, DiscoveryNode] = {}
@@ -37,11 +48,24 @@ class DirExplorer:
             node.run_dir_content_detection()
             if characteristic in node.characteristics:
                 return node
+            if node.has_pyproject_file:
+                pyproject_content = self._document_cache.load(
+                    node.dirpath / "pyproject.toml"
+                )
+                node.run_pyproject_detection(pyproject_content)
+            if characteristic in node.characteristics:
+                return node
 
         raise LookupError(
             f"mddj searched for a directory which matched the '{characteristic}' rule "
             "and could not find one."
         )
+
+
+class _ParsedPyprojectTomlDetector(t.Protocol):
+    characteristics: tuple[Characteristic, ...]
+
+    def match(self, document: tomlkit.TOMLDocument) -> bool: ...  # noqa: E704
 
 
 class _DirContentsDetector(t.Protocol):
@@ -73,6 +97,18 @@ class _SetupPyPackageDetector:
         )
 
 
+class _ToxToolTableDetector:
+    characteristics: tuple[Characteristic, ...] = ("tox",)
+
+    def match(self, document: tomlkit.TOMLDocument) -> bool:
+        if "tool" not in document:
+            return False
+        tool_table = document["tool"]
+        if not _types.is_toml_table(tool_table):
+            return False
+        return "tox" in tool_table
+
+
 _DIR_CONTENTS_DETECTORS: tuple[_DirContentsDetector, ...] = (
     _SimplePathDetector(_VCS_INDICATORS, ("vcs-root",)),
     _SimplePathDetector(("pyproject.toml",), ("pyproject", "python-package")),
@@ -81,6 +117,10 @@ _DIR_CONTENTS_DETECTORS: tuple[_DirContentsDetector, ...] = (
     _SimplePathDetector((".readthedocs.yaml", ".readthedocs.yml"), ("readthedocs",)),
     _SimplePathDetector(("tox.ini", "tox.toml"), ("tox",)),
 )
+_PYPROJECT_CONTENT_DETECTORS: tuple[_ParsedPyprojectTomlDetector, ...] = (
+    _ToxToolTableDetector(),
+)
+
 
 _NAMES_OF_INTEREST: set[str] = {
     name
@@ -94,6 +134,7 @@ _NAMES_OF_INTEREST: set[str] = {
 class DiscoveryNode:
     dirpath: pathlib.Path
     _characteristics: list[Characteristic] = dataclasses.field(default_factory=list)
+    _ran_pyproject_detection: bool = False
 
     @property
     def characteristics(self) -> tuple[Characteristic, ...]:
@@ -103,6 +144,23 @@ class DiscoveryNode:
         # whenever dir contents are first fetched, detection runs
         # imperatively asking for this evaluation simply "touches" the property
         self._dir_contents
+
+    @functools.cached_property
+    def has_pyproject_file(self) -> bool:
+        return "pyproject.toml" in self._dir_contents
+
+    def run_pyproject_detection(self, document: tomlkit.TOMLDocument) -> None:
+        if self._ran_pyproject_detection:
+            return
+
+        for detector in _PYPROJECT_CONTENT_DETECTORS:
+            if not detector.match(document):
+                continue
+            for result in detector.characteristics:
+                if result not in self._characteristics:
+                    self._characteristics.append(result)
+
+        self._ran_pyproject_detection = True
 
     @functools.cached_property
     def _dir_contents(self) -> frozenset[str]:

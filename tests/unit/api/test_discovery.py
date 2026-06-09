@@ -1,3 +1,5 @@
+from textwrap import dedent as d
+
 import pytest
 
 from mddj.api.discovery import DirExplorer
@@ -100,3 +102,18 @@ def test_discovery_can_find_tox_without_python_package(
         explorer.search_for("python-package")
 
     assert str(explorer.search_for("tox").dirpath) == str(tmp_path)
+
+
+def test_discovery_finds_tox_tool_table_in_pyproject(tmp_path):
+    (tmp_path / ".git").mkdir()
+
+    loc = tmp_path / "subdir"
+    loc.mkdir()
+
+    (loc / "pyproject.toml").write_text(d("""\
+        [tool.tox]
+        minversion = "4.0"
+        """))
+
+    explorer = DirExplorer(loc)
+    assert str(explorer.search_for("tox").dirpath) == str(loc)

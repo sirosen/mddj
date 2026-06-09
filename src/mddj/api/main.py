@@ -25,7 +25,9 @@ class DJ:
 
     @functools.cached_property
     def dir_explorer(self) -> DirExplorer:
-        return DirExplorer(self.config.discovery_start_dir)
+        return DirExplorer(
+            self.config.discovery_start_dir, document_cache=self._document_cache
+        )
 
     @functools.cached_property
     def read(self) -> Reader:
