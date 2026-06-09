@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+0.6.0
+-----
+
 - Add a new ``DJ.read.sys`` API for reading system information, aligned with
   Python packaging markers. ``sys`` provides the following methods:
   ``implementation_name()``, ``implementation_version()``, ``os_name()``,
