@@ -15,6 +15,11 @@ Unreleased
 - Add a new ``DJ.read.readthedocs`` API for reading data from a ``.readthedocs.yaml`` config.
   Currently supports ``python_version()`` for getting the version declared.
 - Add a new CLI command, ``mddj read readthedocs project-version``
+- Directory discovery is now done lazily, and skipped when it is not needed. CLI
+  commands which don't need to find a project directory will not error when there
+  is no project dir
+- Directory discovery has been improved to support distinct dirs for different
+  tool configurations
 
 0.5.0
 -----
