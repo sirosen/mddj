@@ -2,7 +2,11 @@ from textwrap import dedent as d
 
 import pytest
 
-pytest.importorskip("tox")
+tox = pytest.importorskip("tox")
+if hasattr(tox.version, "version_tuple"):
+    TOX_MAJOR_VERSION = 4
+else:
+    TOX_MAJOR_VERSION = 3
 
 
 def test_read_version_list_simple(chdir, tmp_path, run_line):
@@ -25,6 +29,7 @@ def test_read_version_list_simple(chdir, tmp_path, run_line):
     assert result.stdout == "3.5\n3.6\n3.7\n3.8\n3.9\n3.10\n"
 
 
+@pytest.mark.skipif(TOX_MAJOR_VERSION < 4, reason="requires tox v4")
 def test_read_version_list_no_py_prefix(chdir, tmp_path, run_line):
     toxini = tmp_path / "tox.ini"
 
