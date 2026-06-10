@@ -3,7 +3,6 @@ from __future__ import annotations
 import collections.abc
 import functools
 import types
-import typing as t
 
 import tomlkit
 from packaging.utils import canonicalize_name
@@ -24,8 +23,6 @@ class StaticPyprojectReader:
     ) -> None:
         self._dir_explorer = dir_explorer
         self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
-
-        self._method_cache: dict[t.Any, t.Any] = {}
 
     # supported public APIs follow, in alphabetical order
 

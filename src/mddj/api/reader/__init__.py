@@ -3,7 +3,6 @@ from __future__ import annotations
 import functools
 import re
 import types
-import typing as t
 
 from ..._internal import _cached_methods, _cached_toml
 from ..config import ReaderConfig, ReadthedocsConfig
@@ -48,7 +47,6 @@ class Reader:
     ) -> None:
         self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
         self.config = config
-        self._method_cache: dict[t.Any, t.Any] = {}
 
     @functools.cached_property
     def tox(self) -> ToxReader:
