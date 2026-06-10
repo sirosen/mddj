@@ -3,7 +3,6 @@ from __future__ import annotations
 import os as _os
 import platform as _platform
 import sys as _sys
-import typing as t
 
 from ..._internal import _cached_methods
 
@@ -15,9 +14,6 @@ class SystemInfoReader:
     The method names intentionally match the names used in the marker specification
     whenever applicable/possible.
     """
-
-    def __init__(self) -> None:
-        self._method_cache: dict[t.Any, t.Any] = {}
 
     def implementation_name(self) -> str:
         return _sys.implementation.name

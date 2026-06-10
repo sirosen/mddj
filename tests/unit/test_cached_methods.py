@@ -1,13 +1,8 @@
-import pytest
-
 from mddj._internal import _cached_methods
 
 
 def test_cached_method_simple_case():
     class Foo:
-        def __init__(self) -> None:
-            self._method_cache = {}
-
         @_cached_methods.cached_method
         def bar(self):
             return object()
@@ -18,23 +13,9 @@ def test_cached_method_simple_case():
     assert p is q
 
 
-def test_cached_method_fails_with_attribute_error_if_object_does_not_provide_cache():
-    class Foo:
-        @_cached_methods.cached_method
-        def bar(self):
-            return 1
-
-    obj = Foo()
-    with pytest.raises(AttributeError):
-        obj.bar()
-
-
 def test_cached_method_distinguishes_different_methods():
     # this test would fail if the method or method name were not injected into the key
     class Foo:
-        def __init__(self) -> None:
-            self._method_cache = {}
-
         @_cached_methods.cached_method
         def bar(self):
             return object()
@@ -51,9 +32,6 @@ def test_cached_method_distinguishes_different_methods():
 
 def test_cached_method_distinguishes_different_calls():
     class Foo:
-        def __init__(self) -> None:
-            self._method_cache = {}
-
         @_cached_methods.cached_method
         def bar(self, x, y, z):
             return object()

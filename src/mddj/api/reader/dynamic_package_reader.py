@@ -26,8 +26,6 @@ class DynamicPackageReader:
         self._isolated_builds = isolated_builds
         self._capture_build_output = capture_build_output
 
-        self._method_cache: dict[t.Any, t.Any] = {}
-
     # supported public APIs follow, in alphabetical order
 
     @_cached_methods.cached_method

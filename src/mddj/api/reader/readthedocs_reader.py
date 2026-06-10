@@ -32,7 +32,6 @@ class ReadthedocsReader:
 
     def __init__(self, config: ReadthedocsConfig) -> None:
         self._config = config
-        self._method_cache: dict[t.Any, t.Any] = {}
 
     @functools.cached_property
     def _config_path(self) -> pathlib.Path:
