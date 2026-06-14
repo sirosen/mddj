@@ -3,9 +3,11 @@ from __future__ import annotations
 import functools
 
 from .._internal import _cached_toml
-from .config import DJConfig, ReaderConfig
+from .config import DJConfig
 from .discovery import DirExplorer
-from .reader import Reader, _ReaderImplementation
+from .reader import Reader
+from .reader import _config as _reader_config
+from .reader import _ReaderImplementation
 from .writer import Writer
 from .writer import _config as _writer_config
 from .writer import _WriterImplementation
@@ -34,7 +36,7 @@ class DJ:
     @functools.cached_property
     def read(self) -> Reader:
         """A Reader configured via this DJ."""
-        config = ReaderConfig(
+        config = _reader_config.ReaderConfig(
             dir_explorer=self.dir_explorer,
             project_directory=self.config.project_dir,
             isolated_builds=self.config.isolated_builds,

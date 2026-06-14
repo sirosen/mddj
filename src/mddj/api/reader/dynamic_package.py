@@ -14,17 +14,10 @@ except ImportError:
     import importlib.metadata as _importlib_metadata
 
 
-class DynamicPackageReader:
-    def __init__(
-        self,
-        dir_explorer: DirExplorer,
-        *,
-        isolated_builds: bool = True,
-        capture_build_output: bool = True,
-    ) -> None:
-        self._dir_explorer = dir_explorer
-        self._isolated_builds = isolated_builds
-        self._capture_build_output = capture_build_output
+class DynamicPackageReader(t.Protocol):
+    _dir_explorer: DirExplorer
+    _isolated_builds: bool
+    _capture_build_output: bool
 
     # supported public APIs follow, in alphabetical order
 
@@ -159,6 +152,19 @@ class DynamicPackageReader:
                     email_mappings.append({"name": name})
 
         return tuple(types.MappingProxyType(x) for x in email_mappings)
+
+
+class _DynamicpackageReaderImplementation(DynamicPackageReader):
+    def __init__(
+        self,
+        dir_explorer: DirExplorer,
+        *,
+        isolated_builds: bool = True,
+        capture_build_output: bool = True,
+    ) -> None:
+        self._dir_explorer = dir_explorer
+        self._isolated_builds = isolated_builds
+        self._capture_build_output = capture_build_output
 
 
 def _parse_emails_to_contact_info(emails: str) -> list[dict[str, str]]:

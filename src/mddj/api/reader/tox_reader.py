@@ -5,18 +5,19 @@ import re
 import shutil
 import subprocess
 import sys
+import typing as t
 
 
 class ToxReaderError(RuntimeError):
     """The class of errors which can be raised if ``tox`` data discovery fails."""
 
 
-class ToxReader:
+class ToxReader(t.Protocol):
     """
     A ToxReader is a specialized data reader for ``tox`` data.
 
-    Typically, users should simply create a DJ and then access the tox reader built by
-    it, as in:
+    Construction is private.
+    Users should create a DJ and then access the tox reader built by it, as in:
 
     .. code-block:: pycon
 
@@ -97,3 +98,7 @@ class ToxReader:
             raise LookupError("No tox version data found.")
 
         return str(sorted_versions[0])
+
+
+class _ToxReaderImplementation(ToxReader):
+    pass

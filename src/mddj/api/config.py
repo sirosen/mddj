@@ -5,8 +5,6 @@ import os
 import pathlib
 import typing as t
 
-from .discovery import DirExplorer
-
 
 def _bool_env_var_default_factory(varname: str, default: bool) -> t.Callable[[], bool]:
     def factory() -> bool:
@@ -44,15 +42,3 @@ class DJConfig:
     capture_build_output: bool = dataclasses.field(
         default_factory=_bool_env_var_default_factory("MDDJ_CAPTURE_BUILD_OUTPUT", True)
     )
-
-
-@dataclasses.dataclass
-class ReaderConfig:
-    """
-    Configuration for a metadata reader.
-    """
-
-    dir_explorer: DirExplorer
-    project_directory: pathlib.Path | None
-    isolated_builds: bool
-    capture_build_output: bool

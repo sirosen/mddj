@@ -4,10 +4,10 @@ from unittest import mock
 import pytest
 
 from mddj._internal import _cached_toml
-from mddj.api.config import ReaderConfig
 from mddj.api.discovery import DirExplorer
+from mddj.api.reader import _config as _reader_config
 from mddj.api.reader import _ReaderImplementation
-from mddj.api.reader.dynamic_package_reader import DynamicPackageReader
+from mddj.api.reader.dynamic_package import DynamicPackageReader
 
 
 def _make_reader(config):
@@ -63,7 +63,7 @@ def pyproject_path(tmp_path):
 @pytest.fixture
 def reader_config(tmp_path, chdir):
     with chdir(tmp_path):
-        yield ReaderConfig(
+        yield _reader_config.ReaderConfig(
             dir_explorer=DirExplorer(tmp_path),
             project_directory=None,
             isolated_builds=True,

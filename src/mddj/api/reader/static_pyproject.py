@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections.abc
 import functools
 import types
+import typing as t
 
 import tomlkit
 from packaging.utils import canonicalize_name
@@ -15,14 +16,9 @@ class StaticMetadataMalformed(ValueError):
     pass
 
 
-class StaticPyprojectReader:
-    def __init__(
-        self,
-        dir_explorer: DirExplorer,
-        document_cache: _cached_toml.TomlDocumentCache | None = None,
-    ) -> None:
-        self._dir_explorer = dir_explorer
-        self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
+class StaticPyprojectReader(t.Protocol):
+    _dir_explorer: DirExplorer
+    _document_cache: _cached_toml.TomlDocumentCache
 
     # supported public APIs follow, in alphabetical order
 
@@ -184,6 +180,16 @@ class StaticPyprojectReader:
                 )
             canonicalized_map[canonical] = value
         return types.MappingProxyType(canonicalized_map)
+
+
+class _StaticPyprojectReaderImplementation(StaticPyprojectReader):
+    def __init__(
+        self,
+        dir_explorer: DirExplorer,
+        document_cache: _cached_toml.TomlDocumentCache | None = None,
+    ) -> None:
+        self._dir_explorer = dir_explorer
+        self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
 
 
 def _is_well_formed_contact_info_entry(entry: object) -> bool:

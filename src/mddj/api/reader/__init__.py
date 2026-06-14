@@ -6,14 +6,20 @@ import types
 import typing as t
 
 from ..._internal import _cached_methods, _cached_toml
-from ..config import ReaderConfig
-from .dynamic_package_reader import DynamicPackageReader
+from . import _config as _reader_config
+from .dynamic_package import (
+    DynamicPackageReader,
+    _DynamicpackageReaderImplementation,
+)
 from .readthedocs import ReadthedocsReader
 from .readthedocs import _config as _readthedocs_config
 from .readthedocs import _ReadthedocsReaderImplementation
-from .static_pyproject_reader import StaticPyprojectReader
-from .system_info_reader import SystemInfoReader
-from .tox_reader import ToxReader
+from .static_pyproject import (
+    StaticPyprojectReader,
+    _StaticPyprojectReaderImplementation,
+)
+from .system_info_reader import SystemInfoReader, _SystemInfoReaderImplementation
+from .tox_reader import ToxReader, _ToxReaderImplementation
 
 
 class MissingRequiredField(LookupError):
@@ -43,7 +49,7 @@ class Reader(t.Protocol):
         '0.1.0'
     """
 
-    _config: ReaderConfig
+    _config: _reader_config.ReaderConfig
     _document_cache: _cached_toml.TomlDocumentCache
 
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
@@ -53,11 +59,11 @@ class Reader(t.Protocol):
     @functools.cached_property
     def tox(self) -> ToxReader:
         """a :class:`ToxReader` provided by this reader"""
-        return ToxReader()
+        return _ToxReaderImplementation()
 
     @functools.cached_property
     def sys(self) -> SystemInfoReader:
-        return SystemInfoReader()
+        return _SystemInfoReaderImplementation()
 
     @functools.cached_property
     def readthedocs(self) -> ReadthedocsReader:
@@ -71,14 +77,14 @@ class Reader(t.Protocol):
     @functools.cached_property
     def static(self) -> StaticPyprojectReader:
         """a :class:`StaticPyprojectReader` provided by this reader"""
-        return StaticPyprojectReader(
+        return _StaticPyprojectReaderImplementation(
             self._config.dir_explorer, document_cache=self._document_cache
         )
 
     @functools.cached_property
     def dynamic(self) -> DynamicPackageReader:
         """a :class:`DynamicPackageReader` provided by this reader"""
-        return DynamicPackageReader(
+        return _DynamicpackageReaderImplementation(
             self._config.dir_explorer,
             isolated_builds=self._config.isolated_builds,
             capture_build_output=self._config.capture_build_output,
@@ -235,7 +241,9 @@ class Reader(t.Protocol):
 
 class _ReaderImplementation(Reader):
     def __init__(
-        self, config: ReaderConfig, document_cache: _cached_toml.TomlDocumentCache
+        self,
+        config: _reader_config.ReaderConfig,
+        document_cache: _cached_toml.TomlDocumentCache,
     ) -> None:
         self._config = config
         self._document_cache = document_cache

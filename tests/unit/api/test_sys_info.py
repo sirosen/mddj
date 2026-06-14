@@ -1,7 +1,7 @@
 import packaging.markers
 import pytest
 
-from mddj.api.reader.system_info_reader import SystemInfoReader
+from mddj.api.reader.system_info_reader import _SystemInfoReaderImplementation
 
 
 @pytest.fixture
@@ -11,7 +11,7 @@ def default_environment():
 
 @pytest.fixture
 def sys_reader():
-    return SystemInfoReader()
+    return _SystemInfoReaderImplementation()
 
 
 @pytest.mark.parametrize(

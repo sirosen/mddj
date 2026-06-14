@@ -74,13 +74,19 @@ Readers
 .. autoclass:: mddj.api.reader.Reader
     :members:
 
-.. autoclass:: mddj.api.reader.tox_reader.ToxReader
+.. autoclass:: mddj.api.reader.static_pyproject.StaticPyprojectReader
     :members:
 
-.. autoclass:: mddj.api.reader.tox_reader.ToxReaderError
+.. autoclass:: mddj.api.reader.dynamic_package.DynamicPackageReader
     :members:
 
-.. autoclass:: mddj.api.reader.readthedocs_reader.ReadthedocsReader
+.. autoclass:: mddj.api.reader.tox.ToxReader
+    :members:
+
+.. autoclass:: mddj.api.reader.tox.ToxReaderError
+    :members:
+
+.. autoclass:: mddj.api.reader.readthedocs.ReadthedocsReader
     :members:
 
 Writers
