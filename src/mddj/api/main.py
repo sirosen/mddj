@@ -3,10 +3,12 @@ from __future__ import annotations
 import functools
 
 from .._internal import _cached_toml
-from .config import DJConfig, ReaderConfig, WriterConfig
+from .config import DJConfig, ReaderConfig
 from .discovery import DirExplorer
 from .reader import Reader, _ReaderImplementation
-from .writer import Writer, _WriterImplementation
+from .writer import Writer
+from .writer import _config as _writer_config
+from .writer import _WriterImplementation
 
 
 class DJ:
@@ -43,7 +45,7 @@ class DJ:
     @functools.cached_property
     def write(self) -> Writer:
         """A Writer configured via this DJ."""
-        config = WriterConfig.load_from_toml(
+        config = _writer_config.WriterConfig.load_from_toml(
             dir_explorer=self.dir_explorer,
             project_directory=self.config.project_dir,
             document_cache=self._document_cache,

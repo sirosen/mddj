@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import typing as t
 
-from .._internal import _cached_toml, _writers
-from .config import WriterConfig, WriteVersionAssignSettings, WriteVersionTomlSettings
+from ..._internal import _cached_toml, _writers
+from . import _config
 
 
 class Writer(t.Protocol):
@@ -22,7 +22,7 @@ class Writer(t.Protocol):
     """
 
     # attributes provided via the private "implementation" class
-    _config: WriterConfig
+    _config: _config.WriterConfig
     _document_cache: _cached_toml.TomlDocumentCache
 
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
@@ -45,11 +45,11 @@ class Writer(t.Protocol):
         write_version_settings = self._config.write_version_settings
         file_path = self._config.project_directory / write_version_settings.file_path
 
-        if isinstance(write_version_settings, WriteVersionAssignSettings):
+        if isinstance(write_version_settings, _config.WriteVersionAssignSettings):
             result = _writers.write_simple_assignment(
                 file_path, write_version_settings.key, new_version
             )
-        elif isinstance(write_version_settings, WriteVersionTomlSettings):
+        elif isinstance(write_version_settings, _config.WriteVersionTomlSettings):
             return _writers.write_toml_value(
                 file_path,
                 write_version_settings.toml_path,
@@ -72,7 +72,9 @@ class Writer(t.Protocol):
 
 class _WriterImplementation(Writer):
     def __init__(
-        self, config: WriterConfig, document_cache: _cached_toml.TomlDocumentCache
+        self,
+        config: _config.WriterConfig,
+        document_cache: _cached_toml.TomlDocumentCache,
     ) -> None:
         self._config = config
         self._document_cache = document_cache
