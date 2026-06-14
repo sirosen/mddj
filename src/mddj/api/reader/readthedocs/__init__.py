@@ -7,15 +7,15 @@ import typing as t
 # for some reason, mypy flags 'loads' as not explicitly exported
 from ryaml import loads as _ryaml_loads  # type: ignore[attr-defined]
 
-from ..._internal import _cached_methods, _toml_path
-from ..config import ReadthedocsConfig
+from ...._internal import _cached_methods, _toml_path
+from ._config import ReadthedocsConfig
 
 
 class ReadthedocsConfigNotFoundError(ValueError):
     pass
 
 
-class ReadthedocsReader:
+class ReadthedocsReader(t.Protocol):
     """
     A ReadthedocsReader is a data reader for ``readthedocs`` configuration.
 
@@ -30,8 +30,7 @@ class ReadthedocsReader:
         '3.11'
     """
 
-    def __init__(self, config: ReadthedocsConfig) -> None:
-        self._config = config
+    _config: ReadthedocsConfig
 
     @functools.cached_property
     def _config_path(self) -> pathlib.Path:
@@ -81,6 +80,11 @@ class ReadthedocsReader:
                 "configuration error: ReadthedocsReader does not support "
                 f"{self._config.python_version_extraction}"
             )
+
+
+class _ReadthedocsReaderImplementation(ReadthedocsReader):
+    def __init__(self, config: ReadthedocsConfig) -> None:
+        self._config = config
 
 
 def _verbatim_process_parsed_version(value: t.Any) -> str:

@@ -6,9 +6,11 @@ import types
 import typing as t
 
 from ..._internal import _cached_methods, _cached_toml
-from ..config import ReaderConfig, ReadthedocsConfig
+from ..config import ReaderConfig
 from .dynamic_package_reader import DynamicPackageReader
-from .readthedocs_reader import ReadthedocsReader
+from .readthedocs import ReadthedocsReader
+from .readthedocs import _config as _readthedocs_config
+from .readthedocs import _ReadthedocsReaderImplementation
 from .static_pyproject_reader import StaticPyprojectReader
 from .system_info_reader import SystemInfoReader
 from .tox_reader import ToxReader
@@ -59,8 +61,8 @@ class Reader(t.Protocol):
 
     @functools.cached_property
     def readthedocs(self) -> ReadthedocsReader:
-        return ReadthedocsReader(
-            ReadthedocsConfig.load_from_toml(
+        return _ReadthedocsReaderImplementation(
+            _readthedocs_config.ReadthedocsConfig.load_from_toml(
                 dir_explorer=self._config.dir_explorer,
                 document_cache=self._document_cache,
             )
