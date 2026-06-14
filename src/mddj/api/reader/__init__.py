@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import re
 import types
+import typing as t
 
 from ..._internal import _cached_methods, _cached_toml
 from ..config import ReaderConfig, ReadthedocsConfig
@@ -21,7 +22,7 @@ class NotALowerBound(ValueError):
     pass
 
 
-class Reader:
+class Reader(t.Protocol):
     """
     A Reader is an interface for data reading capabilities.
 
@@ -29,8 +30,8 @@ class Reader:
     dynamic data (which requires a build). Use ``static`` or ``dynamic`` to explicitly
     choose one or the other.
 
-    Typically, users should simply create a DJ and then access the reader built by it,
-    as in:
+    Construction is private.
+    Users should create a DJ and then access the reader built by it, as in:
 
     .. code-block:: pycon
 
@@ -40,13 +41,12 @@ class Reader:
         '0.1.0'
     """
 
-    def __init__(
-        self,
-        config: ReaderConfig,
-        document_cache: _cached_toml.TomlDocumentCache | None = None,
-    ) -> None:
-        self._document_cache = document_cache or _cached_toml.TomlDocumentCache()
-        self.config = config
+    _config: ReaderConfig
+    _document_cache: _cached_toml.TomlDocumentCache
+
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
+        if not hasattr(self, "_config"):
+            raise TypeError("Reader construction was done improperly.")
 
     @functools.cached_property
     def tox(self) -> ToxReader:
@@ -61,7 +61,7 @@ class Reader:
     def readthedocs(self) -> ReadthedocsReader:
         return ReadthedocsReader(
             ReadthedocsConfig.load_from_toml(
-                dir_explorer=self.config.dir_explorer,
+                dir_explorer=self._config.dir_explorer,
                 document_cache=self._document_cache,
             )
         )
@@ -70,16 +70,16 @@ class Reader:
     def static(self) -> StaticPyprojectReader:
         """a :class:`StaticPyprojectReader` provided by this reader"""
         return StaticPyprojectReader(
-            self.config.dir_explorer, document_cache=self._document_cache
+            self._config.dir_explorer, document_cache=self._document_cache
         )
 
     @functools.cached_property
     def dynamic(self) -> DynamicPackageReader:
         """a :class:`DynamicPackageReader` provided by this reader"""
         return DynamicPackageReader(
-            self.config.dir_explorer,
-            isolated_builds=self.config.isolated_builds,
-            capture_build_output=self.config.capture_build_output,
+            self._config.dir_explorer,
+            isolated_builds=self._config.isolated_builds,
+            capture_build_output=self._config.capture_build_output,
         )
 
     # supported metadata APIs, in alphabetical order
@@ -229,6 +229,14 @@ class Reader:
                 "The project is not a Python Package or did not build correctly."
             )
         return value
+
+
+class _ReaderImplementation(Reader):
+    def __init__(
+        self, config: ReaderConfig, document_cache: _cached_toml.TomlDocumentCache
+    ) -> None:
+        self._config = config
+        self._document_cache = document_cache
 
 
 def _requires_python_lower_bound(req: str) -> str:

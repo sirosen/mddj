@@ -5,8 +5,8 @@ import functools
 from .._internal import _cached_toml
 from .config import DJConfig, ReaderConfig, WriterConfig
 from .discovery import DirExplorer
-from .reader import Reader
-from .writer import Writer
+from .reader import Reader, _ReaderImplementation
+from .writer import Writer, _WriterImplementation
 
 
 class DJ:
@@ -38,7 +38,7 @@ class DJ:
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
         )
-        return Reader(config, document_cache=self._document_cache)
+        return _ReaderImplementation(config, document_cache=self._document_cache)
 
     @functools.cached_property
     def write(self) -> Writer:
@@ -48,4 +48,4 @@ class DJ:
             project_directory=self.config.project_dir,
             document_cache=self._document_cache,
         )
-        return Writer(config, document_cache=self._document_cache)
+        return _WriterImplementation(config, document_cache=self._document_cache)

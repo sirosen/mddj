@@ -3,10 +3,15 @@ from unittest import mock
 
 import pytest
 
+from mddj._internal import _cached_toml
 from mddj.api.config import ReaderConfig
 from mddj.api.discovery import DirExplorer
-from mddj.api.reader import Reader
+from mddj.api.reader import _ReaderImplementation
 from mddj.api.reader.dynamic_package_reader import DynamicPackageReader
+
+
+def _make_reader(config):
+    return _ReaderImplementation(config, _cached_toml.TomlDocumentCache())
 
 
 def make_fake_package_metadata(
@@ -99,7 +104,7 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
         encoding="utf-8",
     )
 
-    reader = Reader(reader_config)
+    reader = _make_reader(reader_config)
 
     # replace the *descriptor*, not the instance value
     monkeypatch.setattr(
@@ -124,7 +129,7 @@ def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
         encoding="utf-8",
     )
 
-    reader = Reader(reader_config)
+    reader = _make_reader(reader_config)
 
     # replace the *descriptor*, not the instance value
     monkeypatch.setattr(
