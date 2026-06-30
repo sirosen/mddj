@@ -4,7 +4,7 @@ import functools
 import pathlib
 import typing as t
 
-from ..._internal import _cached_toml, _writers
+from ..._internal import _writers
 from . import _config
 
 
@@ -25,7 +25,6 @@ class Writer(t.Protocol):
 
     # attributes provided via the private "implementation" class
     _config: _config.WriterConfig
-    _document_cache: _cached_toml.TomlDocumentCache
 
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
         if not hasattr(self, "_config"):
@@ -67,7 +66,7 @@ class Writer(t.Protocol):
                 file_path,
                 write_version_settings.toml_path,
                 new_version,
-                loaded_document=self._document_cache.load(file_path),
+                loaded_document=self._config.document_cache.load(file_path),
             )
         else:
             raise NotImplementedError(
@@ -84,12 +83,7 @@ class Writer(t.Protocol):
 
 
 class _WriterImplementation(Writer):
-    _Config: t.ClassVar[type[_config.WriterConfig]] = _config.WriterConfig
+    _ConfigClass: t.ClassVar[type[_config.WriterConfig]] = _config.WriterConfig
 
-    def __init__(
-        self,
-        config: _config.WriterConfig,
-        document_cache: _cached_toml.TomlDocumentCache,
-    ) -> None:
+    def __init__(self, config: _config.WriterConfig) -> None:
         self._config = config
-        self._document_cache = document_cache

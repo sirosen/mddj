@@ -23,6 +23,7 @@ class WriterConfig:
     """
 
     dir_explorer: _discovery.DirExplorer
+    document_cache: _cached_toml.TomlDocumentCache
     write_version: str = "toml: pyproject.toml: project.version"
 
     @classmethod
@@ -35,7 +36,7 @@ class WriterConfig:
         import tomlkit
 
         if dir_explorer.pyproject_path is None:
-            return cls(dir_explorer=dir_explorer)
+            return cls(dir_explorer=dir_explorer, document_cache=document_cache)
 
         data = document_cache.load(dir_explorer.pyproject_path)
 
@@ -51,9 +52,13 @@ class WriterConfig:
             if not isinstance(write_version, str):
                 raise KeyError("'tool.mddj.write_version' must be a str")
         except KeyError:
-            return cls(dir_explorer)
+            return cls(dir_explorer=dir_explorer, document_cache=document_cache)
 
-        return cls(dir_explorer, write_version=write_version)
+        return cls(
+            dir_explorer=dir_explorer,
+            document_cache=document_cache,
+            write_version=write_version,
+        )
 
     @functools.cached_property
     def write_version_settings(self) -> WriteVersionSettings:

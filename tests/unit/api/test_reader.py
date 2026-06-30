@@ -4,13 +4,12 @@ from unittest import mock
 import pytest
 
 from mddj._internal import _cached_toml, _discovery
-from mddj.api.reader import _config as _reader_config
 from mddj.api.reader import _ReaderImplementation
 from mddj.api.reader.dynamic_package import DynamicPackageReader
 
 
 def _make_reader(config):
-    return _ReaderImplementation(config, _cached_toml.TomlDocumentCache())
+    return _ReaderImplementation(config)
 
 
 def make_fake_package_metadata(
@@ -62,8 +61,9 @@ def pyproject_path(tmp_path):
 @pytest.fixture
 def reader_config(tmp_path, chdir):
     with chdir(tmp_path):
-        yield _reader_config.ReaderConfig(
+        yield _ReaderImplementation._ConfigClass(
             dir_explorer=_discovery.DirExplorer(tmp_path),
+            document_cache=_cached_toml.TomlDocumentCache(),
             isolated_builds=True,
             capture_build_output=True,
         )

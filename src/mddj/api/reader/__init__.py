@@ -5,7 +5,7 @@ import re
 import types
 import typing as t
 
-from ..._internal import _cached_methods, _cached_toml
+from ..._internal import _cached_methods
 from . import _config as _reader_config
 from .dynamic_package import (
     DynamicPackageReader,
@@ -50,7 +50,6 @@ class Reader(t.Protocol):
     """
 
     _config: _reader_config.ReaderConfig
-    _document_cache: _cached_toml.TomlDocumentCache
 
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
         if not hasattr(self, "_config"):
@@ -70,7 +69,7 @@ class Reader(t.Protocol):
         return _ReadthedocsReaderImplementation(
             _readthedocs_config.ReadthedocsConfig.load_from_toml(
                 dir_explorer=self._config.dir_explorer,
-                document_cache=self._document_cache,
+                document_cache=self._config.document_cache,
             )
         )
 
@@ -78,7 +77,7 @@ class Reader(t.Protocol):
     def static(self) -> StaticPyprojectReader:
         """a :class:`StaticPyprojectReader` provided by this reader"""
         return _StaticPyprojectReaderImplementation(
-            self._config.dir_explorer, document_cache=self._document_cache
+            self._config.dir_explorer, document_cache=self._config.document_cache
         )
 
     @functools.cached_property
@@ -240,15 +239,12 @@ class Reader(t.Protocol):
 
 
 class _ReaderImplementation(Reader):
-    _Config: t.ClassVar[type[_reader_config.ReaderConfig]] = _reader_config.ReaderConfig
+    _ConfigClass: t.ClassVar[type[_reader_config.ReaderConfig]] = (
+        _reader_config.ReaderConfig
+    )
 
-    def __init__(
-        self,
-        config: _reader_config.ReaderConfig,
-        document_cache: _cached_toml.TomlDocumentCache,
-    ) -> None:
+    def __init__(self, config: _reader_config.ReaderConfig) -> None:
         self._config = config
-        self._document_cache = document_cache
 
 
 def _requires_python_lower_bound(req: str) -> str:

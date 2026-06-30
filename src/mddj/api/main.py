@@ -31,18 +31,19 @@ class DJ:
     @functools.cached_property
     def read(self) -> Reader:
         """A Reader configured via this DJ."""
-        config = _ReaderImplementation._Config(
+        config = _ReaderImplementation._ConfigClass(
             dir_explorer=self._dir_explorer,
+            document_cache=self._document_cache,
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
         )
-        return _ReaderImplementation(config, document_cache=self._document_cache)
+        return _ReaderImplementation(config)
 
     @functools.cached_property
     def write(self) -> Writer:
         """A Writer configured via this DJ."""
-        config = _WriterImplementation._Config.load_from_toml(
+        config = _WriterImplementation._ConfigClass.load_from_toml(
             dir_explorer=self._dir_explorer,
             document_cache=self._document_cache,
         )
-        return _WriterImplementation(config, document_cache=self._document_cache)
+        return _WriterImplementation(config)
