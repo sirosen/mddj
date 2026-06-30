@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 
 from .._internal import _cached_toml, _discovery
-from .config import DJConfig
+from ._config import DJConfig
 from .reader import Reader, _ReaderImplementation
 from .writer import Writer, _WriterImplementation
 
