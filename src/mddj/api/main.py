@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import functools
 
-from .._internal import _cached_toml
+from .._internal import _cached_toml, _discovery
 from .config import DJConfig
-from .discovery import DirExplorer
 from .reader import Reader
 from .reader import _config as _reader_config
 from .reader import _ReaderImplementation
@@ -28,8 +27,8 @@ class DJ:
         self._document_cache = _cached_toml.TomlDocumentCache()
 
     @functools.cached_property
-    def dir_explorer(self) -> DirExplorer:
-        return DirExplorer(
+    def _dir_explorer(self) -> _discovery.DirExplorer:
+        return _discovery.DirExplorer(
             self.config.discovery_start_dir, document_cache=self._document_cache
         )
 
@@ -37,7 +36,7 @@ class DJ:
     def read(self) -> Reader:
         """A Reader configured via this DJ."""
         config = _reader_config.ReaderConfig(
-            dir_explorer=self.dir_explorer,
+            dir_explorer=self._dir_explorer,
             project_directory=self.config.project_dir,
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
@@ -48,7 +47,7 @@ class DJ:
     def write(self) -> Writer:
         """A Writer configured via this DJ."""
         config = _writer_config.WriterConfig.load_from_toml(
-            dir_explorer=self.dir_explorer,
+            dir_explorer=self._dir_explorer,
             project_directory=self.config.project_dir,
             document_cache=self._document_cache,
         )

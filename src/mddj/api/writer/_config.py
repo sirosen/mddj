@@ -6,8 +6,7 @@ import pathlib
 import sys
 import typing as t
 
-from ..._internal import _cached_toml
-from ..discovery import DirExplorer
+from ..._internal import _cached_toml, _discovery
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -23,7 +22,7 @@ class WriterConfig:
     Configuration for a metadata writer.
     """
 
-    dir_explorer: DirExplorer
+    dir_explorer: _discovery.DirExplorer
     project_directory: pathlib.Path
     write_version: str = "toml: pyproject.toml: project.version"
 
@@ -31,7 +30,7 @@ class WriterConfig:
     def load_from_toml(
         cls,
         *,
-        dir_explorer: DirExplorer,
+        dir_explorer: _discovery.DirExplorer,
         project_directory: pathlib.Path | None,
         document_cache: _cached_toml.TomlDocumentCache,
     ) -> Self:

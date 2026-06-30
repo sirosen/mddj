@@ -8,8 +8,7 @@ import typing as t
 import tomlkit
 from packaging.utils import canonicalize_name
 
-from ..._internal import _cached_methods, _cached_toml, _types
-from ..discovery import DirExplorer
+from ..._internal import _cached_methods, _cached_toml, _discovery, _types
 
 
 class StaticMetadataMalformed(ValueError):
@@ -17,7 +16,7 @@ class StaticMetadataMalformed(ValueError):
 
 
 class StaticPyprojectReader(t.Protocol):
-    _dir_explorer: DirExplorer
+    _dir_explorer: _discovery.DirExplorer
     _document_cache: _cached_toml.TomlDocumentCache
 
     # supported public APIs follow, in alphabetical order
@@ -185,7 +184,7 @@ class StaticPyprojectReader(t.Protocol):
 class _StaticPyprojectReaderImplementation(StaticPyprojectReader):
     def __init__(
         self,
-        dir_explorer: DirExplorer,
+        dir_explorer: _discovery.DirExplorer,
         document_cache: _cached_toml.TomlDocumentCache | None = None,
     ) -> None:
         self._dir_explorer = dir_explorer

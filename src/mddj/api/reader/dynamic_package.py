@@ -5,8 +5,7 @@ import functools
 import types
 import typing as t
 
-from ..._internal import _cached_methods, _wheel_metadata
-from ..discovery import DirExplorer
+from ..._internal import _cached_methods, _discovery, _wheel_metadata
 
 try:
     import importlib_metadata as _importlib_metadata
@@ -15,7 +14,7 @@ except ImportError:
 
 
 class DynamicPackageReader(t.Protocol):
-    _dir_explorer: DirExplorer
+    _dir_explorer: _discovery.DirExplorer
     _isolated_builds: bool
     _capture_build_output: bool
 
@@ -157,7 +156,7 @@ class DynamicPackageReader(t.Protocol):
 class _DynamicpackageReaderImplementation(DynamicPackageReader):
     def __init__(
         self,
-        dir_explorer: DirExplorer,
+        dir_explorer: _discovery.DirExplorer,
         *,
         isolated_builds: bool = True,
         capture_build_output: bool = True,

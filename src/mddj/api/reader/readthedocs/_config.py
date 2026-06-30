@@ -4,8 +4,7 @@ import dataclasses
 import sys
 import typing as t
 
-from ...._internal import _cached_toml
-from ...discovery import DirExplorer
+from ...._internal import _cached_toml, _discovery
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -18,7 +17,7 @@ PythonVersionExtraction: t.TypeAlias = t.Literal["verbatim", "parse_uv_tool_inst
 
 @dataclasses.dataclass
 class ReadthedocsConfig:
-    dir_explorer: DirExplorer
+    dir_explorer: _discovery.DirExplorer
     python_version_path: str = "build.tools.python"
     python_version_extraction: PythonVersionExtraction = "verbatim"
 
@@ -26,7 +25,7 @@ class ReadthedocsConfig:
     def load_from_toml(
         cls,
         *,
-        dir_explorer: DirExplorer,
+        dir_explorer: _discovery.DirExplorer,
         document_cache: _cached_toml.TomlDocumentCache,
     ) -> Self:
         import tomlkit
