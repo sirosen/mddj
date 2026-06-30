@@ -64,7 +64,6 @@ def reader_config(tmp_path, chdir):
     with chdir(tmp_path):
         yield _reader_config.ReaderConfig(
             dir_explorer=_discovery.DirExplorer(tmp_path),
-            project_directory=None,
             isolated_builds=True,
             capture_build_output=True,
         )

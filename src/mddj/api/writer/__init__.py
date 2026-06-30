@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import functools
+import pathlib
 import typing as t
 
 from ..._internal import _cached_toml, _writers
@@ -29,6 +31,17 @@ class Writer(t.Protocol):
         if not hasattr(self, "_config"):
             raise TypeError("Writer construction was done improperly.")
 
+    @functools.cached_property
+    def _python_project_directory(self) -> pathlib.Path:
+        """
+        The python project directory is defined as the dir with a pyproject.toml file,
+        or python package root.
+        """
+        try:
+            return self._config.dir_explorer.search_for("pyproject").dirpath
+        except LookupError:
+            return self._config.dir_explorer.search_for("python-package").dirpath
+
     @property
     def write_version_config(self) -> str:
         """The configuration (as a string) for where and how to write the version."""
@@ -43,7 +56,7 @@ class Writer(t.Protocol):
         the project.
         """
         write_version_settings = self._config.write_version_settings
-        file_path = self._config.project_directory / write_version_settings.file_path
+        file_path = self._python_project_directory / write_version_settings.file_path
 
         if isinstance(write_version_settings, _config.WriteVersionAssignSettings):
             result = _writers.write_simple_assignment(

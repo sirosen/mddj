@@ -23,7 +23,6 @@ class WriterConfig:
     """
 
     dir_explorer: _discovery.DirExplorer
-    project_directory: pathlib.Path
     write_version: str = "toml: pyproject.toml: project.version"
 
     @classmethod
@@ -31,20 +30,14 @@ class WriterConfig:
         cls,
         *,
         dir_explorer: _discovery.DirExplorer,
-        project_directory: pathlib.Path | None,
         document_cache: _cached_toml.TomlDocumentCache,
     ) -> Self:
         import tomlkit
 
-        if project_directory is None:
-            project_directory = dir_explorer.search_for("python-package").dirpath
+        if dir_explorer.pyproject_path is None:
+            return cls(dir_explorer=dir_explorer)
 
-        pyproject_path = project_directory / "pyproject.toml"
-
-        if not pyproject_path.exists():
-            return cls(dir_explorer=dir_explorer, project_directory=project_directory)
-
-        data = document_cache.load(pyproject_path)
+        data = document_cache.load(dir_explorer.pyproject_path)
 
         try:
             tool_table = data["tool"]
@@ -58,13 +51,9 @@ class WriterConfig:
             if not isinstance(write_version, str):
                 raise KeyError("'tool.mddj.write_version' must be a str")
         except KeyError:
-            return cls(dir_explorer, project_directory=project_directory)
+            return cls(dir_explorer)
 
-        return cls(
-            dir_explorer,
-            project_directory=project_directory,
-            write_version=write_version,
-        )
+        return cls(dir_explorer, write_version=write_version)
 
     @functools.cached_property
     def write_version_settings(self) -> WriteVersionSettings:

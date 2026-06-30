@@ -37,7 +37,6 @@ class DJ:
         """A Reader configured via this DJ."""
         config = _reader_config.ReaderConfig(
             dir_explorer=self._dir_explorer,
-            project_directory=self.config.project_dir,
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
         )
@@ -48,7 +47,6 @@ class DJ:
         """A Writer configured via this DJ."""
         config = _writer_config.WriterConfig.load_from_toml(
             dir_explorer=self._dir_explorer,
-            project_directory=self.config.project_dir,
             document_cache=self._document_cache,
         )
         return _WriterImplementation(config, document_cache=self._document_cache)

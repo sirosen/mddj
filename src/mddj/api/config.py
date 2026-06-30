@@ -30,8 +30,6 @@ class DJConfig:
     discovery_start_dir: pathlib.Path = dataclasses.field(
         default_factory=pathlib.Path.cwd
     )
-    #: The project directory. By default, it is discovered from the start directory.
-    project_dir: pathlib.Path | None = None
     #: Whether or not to use isolated builds when getting metadata from build backends.
     #: Defaults to True.
     isolated_builds: bool = dataclasses.field(
