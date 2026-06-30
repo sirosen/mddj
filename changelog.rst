@@ -4,6 +4,12 @@ Changelog
 Unreleased
 ----------
 
+- The constructors for readers, writers, and their configurations are now all
+  private. The only public interface for creating these objects is to create a
+  ``DJ`` and then access its members.
+- Removed the ``project_dir`` from ``DJConfig``, as it was ambiguous when
+  combined with discovery.
+
 0.6.0
 -----
 
