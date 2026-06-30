@@ -84,6 +84,8 @@ class Writer(t.Protocol):
 
 
 class _WriterImplementation(Writer):
+    _Config: t.ClassVar[type[_config.WriterConfig]] = _config.WriterConfig
+
     def __init__(
         self,
         config: _config.WriterConfig,

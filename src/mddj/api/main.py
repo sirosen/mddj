@@ -4,12 +4,8 @@ import functools
 
 from .._internal import _cached_toml, _discovery
 from .config import DJConfig
-from .reader import Reader
-from .reader import _config as _reader_config
-from .reader import _ReaderImplementation
-from .writer import Writer
-from .writer import _config as _writer_config
-from .writer import _WriterImplementation
+from .reader import Reader, _ReaderImplementation
+from .writer import Writer, _WriterImplementation
 
 
 class DJ:
@@ -35,7 +31,7 @@ class DJ:
     @functools.cached_property
     def read(self) -> Reader:
         """A Reader configured via this DJ."""
-        config = _reader_config.ReaderConfig(
+        config = _ReaderImplementation._Config(
             dir_explorer=self._dir_explorer,
             isolated_builds=self.config.isolated_builds,
             capture_build_output=self.config.capture_build_output,
@@ -45,7 +41,7 @@ class DJ:
     @functools.cached_property
     def write(self) -> Writer:
         """A Writer configured via this DJ."""
-        config = _writer_config.WriterConfig.load_from_toml(
+        config = _WriterImplementation._Config.load_from_toml(
             dir_explorer=self._dir_explorer,
             document_cache=self._document_cache,
         )

@@ -240,6 +240,8 @@ class Reader(t.Protocol):
 
 
 class _ReaderImplementation(Reader):
+    _Config: t.ClassVar[type[_reader_config.ReaderConfig]] = _reader_config.ReaderConfig
+
     def __init__(
         self,
         config: _reader_config.ReaderConfig,
