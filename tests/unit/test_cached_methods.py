@@ -1,10 +1,10 @@
 from mddj._internal import _cached_methods
 
 
-def test_cached_method_simple_case():
+def test_cached_method_simple_case() -> None:
     class Foo:
         @_cached_methods.cached_method
-        def bar(self):
+        def bar(self) -> object:
             return object()
 
     obj = Foo()
@@ -13,15 +13,15 @@ def test_cached_method_simple_case():
     assert p is q
 
 
-def test_cached_method_distinguishes_different_methods():
+def test_cached_method_distinguishes_different_methods() -> None:
     # this test would fail if the method or method name were not injected into the key
     class Foo:
         @_cached_methods.cached_method
-        def bar(self):
+        def bar(self) -> object:
             return object()
 
         @_cached_methods.cached_method
-        def baz(self):
+        def baz(self) -> object:
             return object()
 
     obj = Foo()
@@ -30,10 +30,10 @@ def test_cached_method_distinguishes_different_methods():
     assert p is not q
 
 
-def test_cached_method_distinguishes_different_calls():
+def test_cached_method_distinguishes_different_calls() -> None:
     class Foo:
         @_cached_methods.cached_method
-        def bar(self, x, y, z):
+        def bar(self, x: int, y: int, z: int) -> object:
             return object()
 
     obj = Foo()
