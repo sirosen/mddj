@@ -2,7 +2,7 @@ from textwrap import dedent as d
 
 import pytest
 
-from mddj.api.discovery import DirExplorer
+from mddj._internal._discovery import DirExplorer
 
 
 @pytest.mark.parametrize("indicator_file", ("pyproject.toml", "setup.cfg", "setup.py"))

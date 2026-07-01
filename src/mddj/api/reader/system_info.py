@@ -3,11 +3,12 @@ from __future__ import annotations
 import os as _os
 import platform as _platform
 import sys as _sys
+import typing as t
 
 from ..._internal import _cached_methods
 
 
-class SystemInfoReader:
+class SystemInfoReader(t.Protocol):
     """
     This is a simple reader of Python's system introspection modules.
 
@@ -54,3 +55,7 @@ class SystemInfoReader:
 
     def sys_platform(self) -> str:
         return _sys.platform
+
+
+class _SystemInfoReaderImplementation(SystemInfoReader):
+    pass

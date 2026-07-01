@@ -14,7 +14,7 @@ def write_version(*, new_version: str, state: CommandState) -> None:
         click.echo(str(e))
         click.get_current_context().exit(1)
     click.echo(f"""\
-Version was updated. write_version='{state.dj.write.config.write_version}'
+Version was updated. write_version='{state.dj.write.write_version_config}'
 
 old value: {result}
 new value: {new_version}

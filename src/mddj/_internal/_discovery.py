@@ -7,7 +7,7 @@ import typing as t
 
 import tomlkit
 
-from .._internal import _cached_toml, _types
+from . import _cached_toml, _types
 
 Characteristic: t.TypeAlias = t.Literal[
     "pyproject", "python-package", "tox", "readthedocs", "vcs-root"
