@@ -7,6 +7,8 @@ import pathlib
 
 import pytest
 
+from tests.acceptance.conftest import LineRunner
+
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
 
 
@@ -20,18 +22,18 @@ def _in_repo_root():
         os.chdir(old_cwd)
 
 
-def test_requires_python(run_line):
+def test_requires_python(run_line: LineRunner) -> None:
     run_line("mddj read requires-python", search_stdout=r"^>=3\.10$")
 
 
-def test_say_my_name(run_line):
+def test_say_my_name(run_line: LineRunner) -> None:
     run_line("mddj read name", search_stdout=r"^mddj$")
 
 
-def test_my_import_names_are_stated(run_line):
+def test_my_import_names_are_stated(run_line: LineRunner) -> None:
     run_line("mddj read import-names", search_stdout=r"^mddj$")
 
 
-def test_i_have_no_namespaces(run_line):
+def test_i_have_no_namespaces(run_line: LineRunner) -> None:
     result = run_line("mddj read import-namespaces")
     assert result.stdout == ""
