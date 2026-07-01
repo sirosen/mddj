@@ -1,7 +1,7 @@
 import packaging.markers
 import pytest
 
-from mddj.api.reader.system_info_reader import _SystemInfoReaderImplementation
+from mddj.api.reader.system_info import _SystemInfoReaderImplementation
 
 
 @pytest.fixture
