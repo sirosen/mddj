@@ -1,11 +1,17 @@
+import pathlib
 import re
 from textwrap import dedent as d
 
 import pytest
 
+from tests.acceptance.conftest import LineRunner
+from tests.types import ChdirType
+
 
 @pytest.mark.parametrize("onlyopt", (None, "name", "email"))
-def test_read_authors_from_pyproject(chdir, tmp_path, run_line, onlyopt):
+def test_read_authors_from_pyproject(
+    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner, onlyopt: str | None
+) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         d("""\
@@ -40,7 +46,9 @@ def test_read_authors_from_pyproject(chdir, tmp_path, run_line, onlyopt):
 
 
 @pytest.mark.parametrize("onlyopt", (None, "name", "email"))
-def test_read_authors_from_build(chdir, tmp_path, run_line, onlyopt):
+def test_read_authors_from_build(
+    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner, onlyopt: str | None
+) -> None:
     setupcfg = tmp_path / "setup.cfg"
 
     setupcfg.write_text(

@@ -1,12 +1,21 @@
 import re
 import shlex
 import textwrap
+import typing as t
 from textwrap import dedent as d
 
 import click.testing
 import pytest
 
 _PYTEST_VERBOSE = False
+
+_OutputSearchType: t.TypeAlias = (
+    str
+    | re.Pattern[str]
+    | list[str]
+    | list[re.Pattern[str]]
+    | list[str | re.Pattern[str]]
+)
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -29,12 +38,8 @@ class LineRunner:
         line: str,
         assert_exit_code: int = 0,
         stdin: str | None = None,
-        search_stdout: (
-            str | re.Pattern[str] | list[str | re.Pattern[str]] | None
-        ) = None,
-        search_stderr: (
-            str | re.Pattern[str] | list[str | re.Pattern[str]] | None
-        ) = None,
+        search_stdout: _OutputSearchType | None = None,
+        search_stderr: _OutputSearchType | None = None,
         env: dict[str, str] | None = None,
     ) -> click.testing.Result:
         from mddj._cli import main
@@ -80,11 +85,7 @@ def run_line(cli_runner: click.testing.CliRunner) -> object:
     return LineRunner(cli_runner)
 
 
-def _assert_matches(
-    text: str,
-    text_name: str,
-    search: str | re.Pattern[str] | list[str | re.Pattern[str]],
-) -> None:
+def _assert_matches(text: str, text_name: str, search: _OutputSearchType) -> None:
     __tracebackhide__ = True
 
     if isinstance(search, (str, re.Pattern)):
