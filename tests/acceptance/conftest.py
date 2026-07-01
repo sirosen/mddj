@@ -3,33 +3,40 @@ import shlex
 import textwrap
 from textwrap import dedent as d
 
+import click.testing
 import pytest
-from click.testing import CliRunner
 
 _PYTEST_VERBOSE = False
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     if config.getoption("verbose") > 0:
         global _PYTEST_VERBOSE
         _PYTEST_VERBOSE = True
 
 
 @pytest.fixture
-def cli_runner():
-    return CliRunner()
+def cli_runner() -> click.testing.CliRunner:
+    return click.testing.CliRunner()
 
 
-@pytest.fixture
-def run_line(cli_runner):
-    def func(
-        line,
-        assert_exit_code=0,
-        stdin=None,
-        search_stdout=None,
-        search_stderr=None,
-        env=None,
-    ):
+class LineRunner:
+    def __init__(self, cli_runner: click.testing.CliRunner) -> None:
+        self.cli_runner = cli_runner
+
+    def __call__(
+        self,
+        line: str,
+        assert_exit_code: int = 0,
+        stdin: str | None = None,
+        search_stdout: (
+            str | re.Pattern[str] | list[str | re.Pattern[str]] | None
+        ) = None,
+        search_stderr: (
+            str | re.Pattern[str] | list[str | re.Pattern[str]] | None
+        ) = None,
+        env: dict[str, str] | None = None,
+    ) -> click.testing.Result:
         from mddj._cli import main
 
         # split line into args and confirm line starts with "mddj"
@@ -38,7 +45,7 @@ def run_line(cli_runner):
 
         # run the line. main is the "mddj" part of the line
         # if we are expecting success (0), don't catch any exceptions.
-        result = cli_runner.invoke(
+        result = self.cli_runner.invoke(
             main,
             args[1:],
             input=stdin,
@@ -67,10 +74,17 @@ def run_line(cli_runner):
             _assert_matches(result.stderr, "stderr", search_stderr)
         return result
 
-    return func
+
+@pytest.fixture
+def run_line(cli_runner: click.testing.CliRunner) -> object:
+    return LineRunner(cli_runner)
 
 
-def _assert_matches(text, text_name, search):
+def _assert_matches(
+    text: str,
+    text_name: str,
+    search: str | re.Pattern[str] | list[str | re.Pattern[str]],
+) -> None:
     __tracebackhide__ = True
 
     if isinstance(search, (str, re.Pattern)):
