@@ -4,6 +4,7 @@ self-tests of mddj
 
 import os
 import pathlib
+import typing as t
 
 import pytest
 
@@ -13,7 +14,7 @@ REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
 
 
 @pytest.fixture(autouse=True)
-def _in_repo_root():
+def _in_repo_root() -> t.Iterator[None]:
     old_cwd = os.getcwd()
     os.chdir(REPO_ROOT)
     try:
