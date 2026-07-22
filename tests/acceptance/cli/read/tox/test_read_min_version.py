@@ -3,8 +3,8 @@ from textwrap import dedent as d
 
 import pytest
 
-from tests.types import ChdirType
 from tests.acceptance.conftest import LineRunner
+from tests.types import ChdirType
 
 pytest.importorskip("tox")
 

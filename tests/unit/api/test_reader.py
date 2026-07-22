@@ -1,15 +1,15 @@
 import pathlib
-from textwrap import dedent as d
 import typing as t
+from textwrap import dedent as d
 from unittest import mock
 
 import pytest
 
-from tests.types import ChdirType
 from mddj._internal import _cached_toml, _discovery
-from mddj.api.reader._main_reader import _ReaderImplementation
 from mddj.api.reader._config import ReaderConfig
+from mddj.api.reader._main_reader import _ReaderImplementation
 from mddj.api.reader.dynamic_package import DynamicPackageReader
+from tests.types import ChdirType
 
 
 def _make_reader(config: ReaderConfig) -> _ReaderImplementation:
