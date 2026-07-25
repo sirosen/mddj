@@ -2,12 +2,12 @@ from textwrap import dedent as d
 
 import pytest
 
+from tests.acceptance.conftest import CliEnv
+
 
 @pytest.mark.parametrize("quote_char", ('"', "'"))
-def test_update_version_in_pyproject_toml(chdir, tmp_path, run_line, quote_char):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+def test_update_version_in_pyproject_toml(cli_env: CliEnv, quote_char: str) -> None:
+    cli_env.pyproject.write_text(
         d(f"""\
             [build-system]
             requires = ["setuptools"]
@@ -23,10 +23,10 @@ def test_update_version_in_pyproject_toml(chdir, tmp_path, run_line, quote_char)
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
-        run_line("mddj write version 2.3.1")
+    with cli_env.chdir():
+        cli_env.run_line("mddj write version 2.3.1")
 
-    assert pyproject.read_text() == d(f"""\
+    assert cli_env.pyproject.read_text() == d(f"""\
         [build-system]
         requires = ["setuptools"]
         build-backend = "setuptools.build_meta"
@@ -41,10 +41,8 @@ def test_update_version_in_pyproject_toml(chdir, tmp_path, run_line, quote_char)
 
 
 @pytest.mark.parametrize("quote_char", ("", '"', "'"))
-def test_update_version_in_setup_cfg(chdir, tmp_path, run_line, quote_char):
-    setupcfg = tmp_path / "setup.cfg"
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
+def test_update_version_in_setup_cfg(cli_env: CliEnv, quote_char: str) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [tool.mddj]
             write_version = "assign:setup.cfg:version"
@@ -52,7 +50,7 @@ def test_update_version_in_setup_cfg(chdir, tmp_path, run_line, quote_char):
         encoding="utf-8",
     )
 
-    setupcfg.write_text(
+    cli_env.setupcfg.write_text(
         d(f"""\
             [metadata]
             name = foopkg
@@ -63,10 +61,10 @@ def test_update_version_in_setup_cfg(chdir, tmp_path, run_line, quote_char):
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
-        run_line("mddj write version 1.0.1")
+    with cli_env.chdir():
+        cli_env.run_line("mddj write version 1.0.1")
 
-    assert setupcfg.read_text() == d(f"""\
+    assert cli_env.setupcfg.read_text() == d(f"""\
         [metadata]
         name = foopkg
         version = {quote_char}1.0.1{quote_char}

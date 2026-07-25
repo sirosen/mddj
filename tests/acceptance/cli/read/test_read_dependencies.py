@@ -1,10 +1,12 @@
 from textwrap import dedent as d
 
+import pytest
 
-def test_read_dependencies_pyproject_toml(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
+from tests.acceptance.conftest import CliEnv
 
-    pyproject.write_text(
+
+def test_read_dependencies_pyproject_toml(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -20,17 +22,17 @@ def test_read_dependencies_pyproject_toml(chdir, tmp_path, run_line):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        result = run_line("mddj read dependencies")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read dependencies")
         assert result.stdout == "foo\nbar<2\n"
 
 
-def test_read_dependencies_from_setupcfg(chdir, tmp_path, run_line, capfd):
-    setupcfg = tmp_path / "setup.cfg"
-
-    setupcfg.write_text(
+def test_read_dependencies_from_setupcfg(
+    cli_env: CliEnv, capfd: pytest.CaptureFixture[str]
+) -> None:
+    cli_env.setupcfg.write_text(
         d("""\
             [metadata]
             name = foopkg
@@ -46,13 +48,13 @@ def test_read_dependencies_from_setupcfg(chdir, tmp_path, run_line, capfd):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text(
+    cli_env.setuppy.write_text(
         "from setuptools import setup; setup()\n", encoding="utf-8"
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        result = run_line("mddj read dependencies")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read dependencies")
         assert result.stdout == "foo\nbar<2\n"
     captured = capfd.readouterr()
     assert captured.out == ""

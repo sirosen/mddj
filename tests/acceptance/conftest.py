@@ -1,3 +1,6 @@
+import contextlib
+import dataclasses
+import pathlib
 import re
 import shlex
 import textwrap
@@ -6,6 +9,8 @@ from textwrap import dedent as d
 
 import click.testing
 import pytest
+
+from tests.types import ChdirType
 
 _PYTEST_VERBOSE = False
 
@@ -83,6 +88,35 @@ class LineRunner:
 @pytest.fixture
 def run_line(cli_runner: click.testing.CliRunner) -> object:
     return LineRunner(cli_runner)
+
+
+@dataclasses.dataclass
+class CliEnv:
+    _chdir: ChdirType
+    dir: pathlib.Path
+    run_line: LineRunner
+
+    @contextlib.contextmanager
+    def chdir(self, path: str | pathlib.Path | None = None) -> t.Iterator[None]:
+        with self._chdir(path or self.dir):
+            yield
+
+    @property
+    def pyproject(self) -> pathlib.Path:
+        return self.dir / "pyproject.toml"
+
+    @property
+    def setuppy(self) -> pathlib.Path:
+        return self.dir / "setup.py"
+
+    @property
+    def setupcfg(self) -> pathlib.Path:
+        return self.dir / "setup.cfg"
+
+
+@pytest.fixture
+def cli_env(chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner) -> CliEnv:
+    return CliEnv(chdir, tmp_path, run_line)
 
 
 def _assert_matches(text: str, text_name: str, search: _OutputSearchType) -> None:

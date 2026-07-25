@@ -3,11 +3,11 @@ from textwrap import dedent as d
 
 import pytest
 
+from tests.acceptance.conftest import CliEnv
 
-def test_read_version_from_pyproject(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write_text(
+def test_read_version_from_pyproject(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -22,16 +22,14 @@ def test_read_version_from_pyproject(chdir, tmp_path, run_line):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").write_text("", encoding="utf-8")
+    (cli_env.dir / "foopkg.py").write_text("", encoding="utf-8")
 
-    with chdir(tmp_path):
-        run_line("mddj read version", search_stdout=r"^8\.0\.7$")
+    with cli_env.chdir():
+        cli_env.run_line("mddj read version", search_stdout=r"^8\.0\.7$")
 
 
-def test_read_version_from_build(chdir, tmp_path, run_line):
-    setupcfg = tmp_path / "setup.cfg"
-
-    setupcfg.write_text(
+def test_read_version_from_build(cli_env: CliEnv) -> None:
+    cli_env.setupcfg.write_text(
         d("""\
             [metadata]
             name = foopkg
@@ -42,25 +40,23 @@ def test_read_version_from_build(chdir, tmp_path, run_line):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text(
+    cli_env.setuppy.write_text(
         "from setuptools import setup; setup()\n", encoding="utf-8"
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
+    with cli_env.chdir():
+        cli_env.run_line("mddj read version", search_stdout=r"^1\.0\.0$")
 
 
-def test_read_version_from_build_with_pyproject_present(chdir, tmp_path, run_line):
-    setupcfg = tmp_path / "setup.cfg"
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(d("""\
+def test_read_version_from_build_with_pyproject_present(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(d("""\
             [project]
             name = "foopkg"
             dynamic = ["version"]
             """))
 
-    setupcfg.write_text(
+    cli_env.setupcfg.write_text(
         d("""\
             [metadata]
             name = foopkg
@@ -71,13 +67,13 @@ def test_read_version_from_build_with_pyproject_present(chdir, tmp_path, run_lin
             """),
         encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text(
+    cli_env.setuppy.write_text(
         "from setuptools import setup; setup()\n", encoding="utf-8"
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        run_line("mddj read version", search_stdout=r"^1\.0\.0$")
+    with cli_env.chdir():
+        cli_env.run_line("mddj read version", search_stdout=r"^1\.0\.0$")
 
 
 @pytest.mark.parametrize(
@@ -95,11 +91,9 @@ def test_read_version_from_build_with_pyproject_present(chdir, tmp_path, run_lin
     ),
 )
 def test_read_version_attribute_from_pyproject(
-    chdir, tmp_path, run_line, version, attr, result
-):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+    cli_env: CliEnv, version: str, attr: str, result: str
+) -> None:
+    cli_env.pyproject.write_text(
         d(f"""\
             [build-system]
             requires = ["setuptools"]
@@ -114,10 +108,10 @@ def test_read_version_attribute_from_pyproject(
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").write_text("", encoding="utf-8")
+    (cli_env.dir / "foopkg.py").write_text("", encoding="utf-8")
 
-    with chdir(tmp_path):
-        run_line(
+    with cli_env.chdir():
+        cli_env.run_line(
             f"mddj read version --attr {attr}",
             search_stdout="^" + re.escape(result) + "$",
         )
@@ -131,11 +125,9 @@ def test_read_version_attribute_from_pyproject(
     ),
 )
 def test_read_version_attribute_from_pyproject_fails_due_to_type(
-    chdir, tmp_path, run_line, version, attr, message
+    cli_env: CliEnv, version: str, attr: str, message: str
 ):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+    cli_env.pyproject.write_text(
         d(f"""\
             [build-system]
             requires = ["setuptools"]
@@ -150,10 +142,10 @@ def test_read_version_attribute_from_pyproject_fails_due_to_type(
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").write_text("", encoding="utf-8")
+    (cli_env.dir / "foopkg.py").write_text("", encoding="utf-8")
 
-    with chdir(tmp_path):
-        run_line(
+    with cli_env.chdir():
+        cli_env.run_line(
             f"mddj read version --attr {attr}",
             search_stderr="^" + re.escape(message) + "$",
             assert_exit_code=1,
@@ -178,11 +170,9 @@ def test_read_version_attribute_from_pyproject_fails_due_to_type(
     ),
 )
 def test_read_version_from_pyproject_ignores_malformed_tool_config(
-    tmpdir, run_line, bad_toml
+    cli_env: CliEnv, bad_toml
 ):
-    pyproject = tmpdir.join("pyproject.toml")
-
-    pyproject.write(d(f"""\
+    cli_env.pyproject.write(d(f"""\
             {bad_toml}
 
             [build-system]
@@ -196,7 +186,7 @@ def test_read_version_from_pyproject_ignores_malformed_tool_config(
               {{ name = "Foo", email = "foo@example.org" }},
             ]
             """))
-    tmpdir.join("foopkg.py").write("")
+    (cli_env.dir / "foopkg.py").write("")
 
-    with tmpdir.as_cwd():
-        run_line("mddj read version", search_stdout=r"^8\.0\.7$")
+    with cli_env.chdir():
+        cli_env.run_line("mddj read version", search_stdout=r"^8\.0\.7$")

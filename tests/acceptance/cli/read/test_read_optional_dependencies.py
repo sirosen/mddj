@@ -1,10 +1,10 @@
 from textwrap import dedent as d
 
+from tests.acceptance.conftest import CliEnv
 
-def test_read_static_optional_deps(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write_text(
+def test_read_static_optional_deps(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -21,8 +21,8 @@ def test_read_static_optional_deps(chdir, tmp_path, run_line):
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
-        result = run_line("mddj read optional-dependencies")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read optional-dependencies")
         assert result.stdout == d("""\
             foo:
                 bar<2
@@ -32,10 +32,8 @@ def test_read_static_optional_deps(chdir, tmp_path, run_line):
             """)
 
 
-def test_read_static_optional_deps_non_normalized(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+def test_read_static_optional_deps_non_normalized(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -51,24 +49,22 @@ def test_read_static_optional_deps_non_normalized(chdir, tmp_path, run_line):
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
-        result = run_line("mddj read optional-dependencies")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read optional-dependencies")
         # printed out normalized
         assert result.stdout == d("""\
             foo-bar:
                 baz
             """)
 
-    with chdir(tmp_path):
+    with cli_env.chdir():
         # selected non-normalized (will normalize)
-        result = run_line("mddj read optional-dependencies --extra foo.bar")
+        result = cli_env.run_line("mddj read optional-dependencies --extra foo.bar")
         assert result.stdout == "baz\n"
 
 
-def test_read_static_optional_deps_select_one(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+def test_read_static_optional_deps_select_one(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -85,18 +81,16 @@ def test_read_static_optional_deps_select_one(chdir, tmp_path, run_line):
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
-        result = run_line("mddj read optional-dependencies --extra foo")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read optional-dependencies --extra foo")
         assert result.stdout == d("""\
             bar<2
             snork
             """)
 
 
-def test_read_static_optional_deps_select_one_does_not_exist(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+def test_read_static_optional_deps_select_one_does_not_exist(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -113,8 +107,8 @@ def test_read_static_optional_deps_select_one_does_not_exist(chdir, tmp_path, ru
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
-        result = run_line(
+    with cli_env.chdir():
+        result = cli_env.run_line(
             "mddj read optional-dependencies --extra bar", assert_exit_code=1
         )
         assert result.stdout == ""
@@ -124,13 +118,11 @@ def test_read_static_optional_deps_select_one_does_not_exist(chdir, tmp_path, ru
         assert "a-real-empty-extra" in result.stderr
 
 
-def test_read_dynamic_optional_deps_strip_extras(chdir, tmp_path, run_line):
+def test_read_dynamic_optional_deps_strip_extras(cli_env: CliEnv) -> None:
     """
     Prove it works by "sufficiently intimidating example"
     """
-    setuppy = tmp_path / "setup.py"
-
-    setuppy.write_text(
+    cli_env.setuppy.write_text(
         d("""\
             from setuptools import setup
 
@@ -158,10 +150,10 @@ def test_read_dynamic_optional_deps_strip_extras(chdir, tmp_path, run_line):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        result = run_line("mddj read optional-dependencies")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read optional-dependencies")
 
     # setuptools seems to preserve definition order for extras
     # and the sneaky thing added via an extra marker comes first
@@ -178,10 +170,8 @@ def test_read_dynamic_optional_deps_strip_extras(chdir, tmp_path, run_line):
         """)
 
 
-def test_read_dynamic_optional_deps_exact(chdir, tmp_path, run_line):
-    setuppy = tmp_path / "setup.py"
-
-    setuppy.write_text(
+def test_read_dynamic_optional_deps_exact(cli_env: CliEnv) -> None:
+    cli_env.setuppy.write_text(
         d("""\
             from setuptools import setup
 
@@ -209,10 +199,12 @@ def test_read_dynamic_optional_deps_exact(chdir, tmp_path, run_line):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        result = run_line("mddj read optional-dependencies --exact-wheel-metadata")
+    with cli_env.chdir():
+        result = cli_env.run_line(
+            "mddj read optional-dependencies --exact-wheel-metadata"
+        )
 
     # WARNING: this output is highly dependent on exact setuptools behavior
     assert result.stdout == d("""\

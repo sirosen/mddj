@@ -2,12 +2,12 @@ from textwrap import dedent as d
 
 import pytest
 
+from tests.acceptance.conftest import CliEnv
+
 
 @pytest.mark.parametrize("lower_bound", (True, False))
-def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+def test_read_python_requires(cli_env: CliEnv, lower_bound: bool) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -23,21 +23,21 @@ def test_read_python_requires(chdir, tmp_path, run_line, lower_bound):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
+    with cli_env.chdir():
         cmd = ["mddj", "read", "requires-python"]
         if lower_bound:
             cmd.append("--lower-bound")
 
         expect_result = r"^3\.11$" if lower_bound else r"^>=3\.11$"
-        run_line(cmd, search_stdout=expect_result)
+        cli_env.run_line(cmd, search_stdout=expect_result)
 
 
-def test_read_python_requires_from_setupcfg(chdir, tmp_path, run_line, capfd):
-    setupcfg = tmp_path / "setup.cfg"
-
-    setupcfg.write_text(
+def test_read_python_requires_from_setupcfg(
+    cli_env: CliEnv, capfd: pytest.CaptureFixture[str]
+) -> None:
+    cli_env.setupcfg.write_text(
         d("""\
             [metadata]
             name = foopkg
@@ -51,13 +51,15 @@ def test_read_python_requires_from_setupcfg(chdir, tmp_path, run_line, capfd):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text(
+    cli_env.setuppy.write_text(
         "from setuptools import setup; setup()\n", encoding="utf-8"
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        result = run_line("mddj read requires-python", search_stdout=r"^>=3\.10$")
+    with cli_env.chdir():
+        result = cli_env.run_line(
+            "mddj read requires-python", search_stdout=r"^>=3\.10$"
+        )
         assert len(result.stdout.splitlines()) == 1
     captured = capfd.readouterr()
     assert captured.out == ""

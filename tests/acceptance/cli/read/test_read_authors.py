@@ -1,19 +1,14 @@
-import pathlib
 import re
 from textwrap import dedent as d
 
 import pytest
 
-from tests.acceptance.conftest import LineRunner
-from tests.types import ChdirType
+from tests.acceptance.conftest import CliEnv
 
 
 @pytest.mark.parametrize("onlyopt", (None, "name", "email"))
-def test_read_authors_from_pyproject(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner, onlyopt: str | None
-) -> None:
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
+def test_read_authors_from_pyproject(cli_env: CliEnv, onlyopt: str | None) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -28,7 +23,7 @@ def test_read_authors_from_pyproject(
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
     cmd = "mddj read authors"
     expect_out = "Foo <foo@example.org>"
@@ -41,17 +36,13 @@ def test_read_authors_from_pyproject(
 
     expect_out = "^" + re.escape(expect_out) + "$"
 
-    with chdir(tmp_path):
-        run_line(cmd, search_stdout=expect_out)
+    with cli_env.chdir():
+        cli_env.run_line(cmd, search_stdout=expect_out)
 
 
 @pytest.mark.parametrize("onlyopt", (None, "name", "email"))
-def test_read_authors_from_build(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner, onlyopt: str | None
-) -> None:
-    setupcfg = tmp_path / "setup.cfg"
-
-    setupcfg.write_text(
+def test_read_authors_from_build(cli_env: CliEnv, onlyopt: str | None) -> None:
+    cli_env.setupcfg.write_text(
         d("""\
             [metadata]
             name = foopkg
@@ -62,10 +53,10 @@ def test_read_authors_from_build(
             """),
         encoding="utf-8",
     )
-    (tmp_path / "setup.py").write_text(
+    cli_env.setuppy.write_text(
         "from setuptools import setup; setup()\n", encoding="utf-8"
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
     cmd = "mddj read authors"
     if onlyopt:
@@ -81,5 +72,5 @@ def test_read_authors_from_build(
     else:
         expect_out = ["^Foo$", r"^<foo@example\.org>$"]
 
-    with chdir(tmp_path):
-        run_line(cmd, search_stdout=expect_out)
+    with cli_env.chdir():
+        cli_env.run_line(cmd, search_stdout=expect_out)
