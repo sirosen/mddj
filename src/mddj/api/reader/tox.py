@@ -61,7 +61,11 @@ class ToxReader(t.Protocol):
         from packaging.version import Version
 
         version = Version(self._tox_version)
-        if version.major in (3, 4):
+        if version.major == 3:
+            raise ToxReaderError(
+                "tox version 3 is no longer supported. Please upgrade to tox version 4."
+            )
+        if version.major == 4:
             return self._tox_version
         else:
             raise ToxReaderError("'tox --version' was not a recognized version.")
