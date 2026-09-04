@@ -126,7 +126,7 @@ def test_read_version_attribute_from_pyproject(
 )
 def test_read_version_attribute_from_pyproject_fails_due_to_type(
     cli_env: CliEnv, version: str, attr: str, message: str
-):
+) -> None:
     cli_env.pyproject.write_text(
         d(f"""\
             [build-system]
@@ -170,9 +170,9 @@ def test_read_version_attribute_from_pyproject_fails_due_to_type(
     ),
 )
 def test_read_version_from_pyproject_ignores_malformed_tool_config(
-    cli_env: CliEnv, bad_toml
-):
-    cli_env.pyproject.write(d(f"""\
+    cli_env: CliEnv, bad_toml: str
+) -> None:
+    cli_env.pyproject.write_text(d(f"""\
             {bad_toml}
 
             [build-system]
@@ -186,7 +186,7 @@ def test_read_version_from_pyproject_ignores_malformed_tool_config(
               {{ name = "Foo", email = "foo@example.org" }},
             ]
             """))
-    (cli_env.dir / "foopkg.py").write("")
+    (cli_env.dir / "foopkg.py").write_text("")
 
     with cli_env.chdir():
         cli_env.run_line("mddj read version", search_stdout=r"^8\.0\.7$")

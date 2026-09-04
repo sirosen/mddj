@@ -3,9 +3,11 @@ import re
 import packaging.markers
 import pytest
 
+from tests.acceptance.conftest import LineRunner
+
 
 @pytest.fixture
-def default_environment():
+def default_environment() -> packaging.markers.Environment:
     return packaging.markers.default_environment()
 
 
@@ -26,10 +28,12 @@ def default_environment():
     ),
 )
 def test_sys_reader_command_output_matches_packaging_default_env(
-    run_line, default_environment, fieldname
-):
+    run_line: LineRunner,
+    default_environment: packaging.markers.Environment,
+    fieldname: str,
+) -> None:
     assert fieldname in default_environment
-    expected_value = default_environment[fieldname]
+    expected_value = default_environment[fieldname]  # type: ignore[literal-required]
 
     command_name = fieldname.replace("_", "-")
     run_line(

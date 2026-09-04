@@ -15,11 +15,7 @@ from tests.types import ChdirType
 _PYTEST_VERBOSE = False
 
 _OutputSearchType: t.TypeAlias = (
-    str
-    | re.Pattern[str]
-    | list[str]
-    | list[re.Pattern[str]]
-    | list[str | re.Pattern[str]]
+    str | re.Pattern[str] | t.Sequence[str | re.Pattern[str]]
 )
 
 
@@ -40,7 +36,7 @@ class LineRunner:
 
     def __call__(
         self,
-        line: str,
+        line: str | list[str],
         assert_exit_code: int = 0,
         stdin: str | None = None,
         search_stdout: _OutputSearchType | None = None,
