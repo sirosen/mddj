@@ -1,10 +1,10 @@
 from textwrap import dedent as d
 
+from tests.acceptance.conftest import CliEnv
 
-def test_read_static_classifiers(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
 
-    pyproject.write_text(
+def test_read_static_classifiers(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -23,20 +23,18 @@ def test_read_static_classifiers(chdir, tmp_path, run_line):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        result = run_line("mddj read classifiers")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read classifiers")
         assert result.stdout == d("""\
             Development Status :: 5 - Production
             Programming Language :: Python
             """)
 
 
-def test_read_python_versions_from_classifiers(chdir, tmp_path, run_line):
-    pyproject = tmp_path / "pyproject.toml"
-
-    pyproject.write_text(
+def test_read_python_versions_from_classifiers(cli_env: CliEnv) -> None:
+    cli_env.pyproject.write_text(
         d("""\
             [build-system]
             requires = ["setuptools"]
@@ -59,10 +57,10 @@ def test_read_python_versions_from_classifiers(chdir, tmp_path, run_line):
             """),
         encoding="utf-8",
     )
-    (tmp_path / "foopkg.py").touch()
+    (cli_env.dir / "foopkg.py").touch()
 
-    with chdir(tmp_path):
-        result = run_line("mddj read classifiers --python-versions")
+    with cli_env.chdir():
+        result = cli_env.run_line("mddj read classifiers --python-versions")
         assert result.stdout == d("""\
             2.7
             3.5

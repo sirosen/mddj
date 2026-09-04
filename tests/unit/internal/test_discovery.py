@@ -1,3 +1,4 @@
+import pathlib
 from textwrap import dedent as d
 
 import pytest
@@ -6,7 +7,9 @@ from mddj._internal._discovery import DirExplorer
 
 
 @pytest.mark.parametrize("indicator_file", ("pyproject.toml", "setup.cfg", "setup.py"))
-def test_can_discover_unambiguous_package_dir(tmp_path, indicator_file):
+def test_can_discover_unambiguous_package_dir(
+    tmp_path: pathlib.Path, indicator_file: str
+) -> None:
     (tmp_path / indicator_file).touch()
 
     working_dir = tmp_path / "subdir"
@@ -16,7 +19,7 @@ def test_can_discover_unambiguous_package_dir(tmp_path, indicator_file):
     assert str(explorer.search_for("python-package").dirpath) == str(tmp_path)
 
 
-def test_discovery_skips_setup_py_dir_with_init_py(tmp_path):
+def test_discovery_skips_setup_py_dir_with_init_py(tmp_path: pathlib.Path) -> None:
     (tmp_path / "pyproject.toml").touch()
 
     module_dir = tmp_path / "subdir1"
@@ -34,7 +37,9 @@ def test_discovery_skips_setup_py_dir_with_init_py(tmp_path):
     assert str(explorer.search_for("python-package").dirpath) == str(module_dir)
 
 
-def test_discovery_selects_setup_py_at_repo_root_as_final_guess(tmp_path):
+def test_discovery_selects_setup_py_at_repo_root_as_final_guess(
+    tmp_path: pathlib.Path,
+) -> None:
     # "repo root"
     (tmp_path / "setup.py").touch()
     (tmp_path / ".git").mkdir()
@@ -50,8 +55,8 @@ def test_discovery_selects_setup_py_at_repo_root_as_final_guess(tmp_path):
 
 @pytest.mark.parametrize("vcs_indicator", (".git", ".hg", ".svn"))
 def test_discovery_raises_lookup_error_if_no_package_indicator_is_found(
-    tmp_path, vcs_indicator
-):
+    tmp_path: pathlib.Path, vcs_indicator: str
+) -> None:
     (tmp_path / vcs_indicator).mkdir()
 
     loc = tmp_path / "subdir"
@@ -71,8 +76,8 @@ def test_discovery_raises_lookup_error_if_no_package_indicator_is_found(
 @pytest.mark.parametrize("vcs_indicator", (".git", ".hg", ".svn"))
 @pytest.mark.parametrize("rtd_filename", (".readthedocs.yaml", ".readthedocs.yml"))
 def test_discovery_can_find_readthedocs_without_python_package(
-    tmp_path, vcs_indicator, rtd_filename
-):
+    tmp_path: pathlib.Path, vcs_indicator: str, rtd_filename: str
+) -> None:
     (tmp_path / vcs_indicator).mkdir()
     (tmp_path / rtd_filename).touch()
 
@@ -89,8 +94,8 @@ def test_discovery_can_find_readthedocs_without_python_package(
 @pytest.mark.parametrize("vcs_indicator", (".git", ".hg", ".svn"))
 @pytest.mark.parametrize("tox_filename", ("tox.ini", "tox.toml"))
 def test_discovery_can_find_tox_without_python_package(
-    tmp_path, vcs_indicator, tox_filename
-):
+    tmp_path: pathlib.Path, vcs_indicator: str, tox_filename: str
+) -> None:
     (tmp_path / vcs_indicator).mkdir()
     (tmp_path / tox_filename).touch()
 
@@ -104,7 +109,7 @@ def test_discovery_can_find_tox_without_python_package(
     assert str(explorer.search_for("tox").dirpath) == str(tmp_path)
 
 
-def test_discovery_finds_tox_tool_table_in_pyproject(tmp_path):
+def test_discovery_finds_tox_tool_table_in_pyproject(tmp_path: pathlib.Path) -> None:
     (tmp_path / ".git").mkdir()
 
     loc = tmp_path / "subdir"

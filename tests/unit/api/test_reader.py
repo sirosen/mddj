@@ -1,26 +1,30 @@
+import pathlib
+import typing as t
 from textwrap import dedent as d
 from unittest import mock
 
 import pytest
 
 from mddj._internal import _cached_toml, _discovery
-from mddj.api.reader import _ReaderImplementation
+from mddj.api.reader._config import ReaderConfig
+from mddj.api.reader._main_reader import _ReaderImplementation
 from mddj.api.reader.dynamic_package import DynamicPackageReader
+from tests.types import ChdirType
 
 
-def _make_reader(config):
+def _make_reader(config: ReaderConfig) -> _ReaderImplementation:
     return _ReaderImplementation(config)
 
 
 def make_fake_package_metadata(
-    name="foo",
-    version="0.0.1",
-    summary="the foo pkg",
-    keywords="networking,cli,big data",
-    requires_python=">= 3.7",
-    requires_dist=("bar", "baz", "colorama; extra == 'cli'"),
-    provides_extra=("cli",),
-):
+    name: str = "foo",
+    version: str = "0.0.1",
+    summary: str = "the foo pkg",
+    keywords: str = "networking,cli,big data",
+    requires_python: str = ">= 3.7",
+    requires_dist: tuple[str, ...] = ("bar", "baz", "colorama; extra == 'cli'"),
+    provides_extra: tuple[str, ...] = ("cli",),
+) -> t.Any:
     fake = mock.Mock()
     fake._data = {
         "Name": name,
@@ -32,7 +36,7 @@ def make_fake_package_metadata(
         "Provides-Extra": provides_extra,
     }
 
-    def get(key):
+    def get(key: str) -> str | None:
         value = fake._data.get(key)
         if value is not None and not isinstance(value, str):
             pytest.fail(f"bad get() usage on key: {key}")
@@ -40,7 +44,7 @@ def make_fake_package_metadata(
 
     fake.get.side_effect = get
 
-    def get_all(key, failobj=None):
+    def get_all(key: str, failobj: t.Any = None) -> t.Any:
         value = fake._data.get(key, failobj)
         if value is failobj:
             return failobj
@@ -54,12 +58,12 @@ def make_fake_package_metadata(
 
 
 @pytest.fixture
-def pyproject_path(tmp_path):
+def pyproject_path(tmp_path: pathlib.Path) -> pathlib.Path:
     return tmp_path / "pyproject.toml"
 
 
 @pytest.fixture
-def reader_config(tmp_path, chdir):
+def reader_config(tmp_path: pathlib.Path, chdir: ChdirType) -> t.Iterator[ReaderConfig]:
     with chdir(tmp_path):
         yield _ReaderImplementation._ConfigClass(
             dir_explorer=_discovery.DirExplorer(tmp_path),
@@ -86,14 +90,14 @@ def reader_config(tmp_path, chdir):
     ],
 )
 def test_metadata_reader_prefers_fields_from_static_metadata(
-    pyproject_path,
-    reader_config,
-    monkeypatch,
-    read_method,
-    pyproject_fieldname,
-    toml_value,
-    expect_result,
-):
+    pyproject_path: pathlib.Path,
+    reader_config: ReaderConfig,
+    monkeypatch: pytest.MonkeyPatch,
+    read_method: str,
+    pyproject_fieldname: str,
+    toml_value: str,
+    expect_result: str | tuple[str, ...],
+) -> None:
     pyproject_path.write_text(
         d(f"""\
             [project]
@@ -114,8 +118,10 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
 
 
 def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
-    pyproject_path, reader_config, monkeypatch
-):
+    pyproject_path: pathlib.Path,
+    reader_config: ReaderConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     pyproject_path.write_text(
         d("""\
             [project]

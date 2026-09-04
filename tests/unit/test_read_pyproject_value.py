@@ -1,3 +1,4 @@
+import pathlib
 from textwrap import dedent as d
 
 import pytest
@@ -7,11 +8,13 @@ from mddj.api.reader.static_pyproject import _read_pyproject_toml_value
 
 
 @pytest.fixture
-def document_cache():
+def document_cache() -> _cached_toml.TomlDocumentCache:
     return _cached_toml.TomlDocumentCache()
 
 
-def test_read_string_table_key(tmp_path, document_cache):
+def test_read_string_table_key(
+    tmp_path: pathlib.Path, document_cache: _cached_toml.TomlDocumentCache
+) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -28,7 +31,9 @@ def test_read_string_table_key(tmp_path, document_cache):
     assert read_val == "1.0.0"
 
 
-def test_read_array_members(tmp_path, document_cache):
+def test_read_array_members(
+    tmp_path: pathlib.Path, document_cache: _cached_toml.TomlDocumentCache
+) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -48,7 +53,9 @@ def test_read_array_members(tmp_path, document_cache):
     assert read_val == "foo"
 
 
-def test_read_bad_lookup_noncontainer(tmp_path, document_cache):
+def test_read_bad_lookup_noncontainer(
+    tmp_path: pathlib.Path, document_cache: _cached_toml.TomlDocumentCache
+) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -65,7 +72,9 @@ def test_read_bad_lookup_noncontainer(tmp_path, document_cache):
         )
 
 
-def test_read_bad_lookup_wrong_index_type(tmp_path, document_cache):
+def test_read_bad_lookup_wrong_index_type(
+    tmp_path: pathlib.Path, document_cache: _cached_toml.TomlDocumentCache
+) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(

@@ -1,3 +1,4 @@
+import pathlib
 from textwrap import dedent as d
 
 import pytest
@@ -5,7 +6,7 @@ import pytest
 from mddj._internal import _writers
 
 
-def test_write_table_key(tmp_path):
+def test_write_table_key(tmp_path: pathlib.Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -24,7 +25,7 @@ def test_write_table_key(tmp_path):
         """)
 
 
-def test_write_inline_table_key(tmp_path):
+def test_write_inline_table_key(tmp_path: pathlib.Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -41,7 +42,7 @@ def test_write_inline_table_key(tmp_path):
         """)
 
 
-def test_write_at_top_level(tmp_path):
+def test_write_at_top_level(tmp_path: pathlib.Path) -> None:
     config = tmp_path / "config.toml"
 
     config.write_text(
@@ -58,7 +59,7 @@ def test_write_at_top_level(tmp_path):
         """)
 
 
-def test_write_array_element(tmp_path):
+def test_write_array_element(tmp_path: pathlib.Path) -> None:
     config = tmp_path / "config.toml"
 
     config.write_text(
@@ -81,7 +82,7 @@ def test_write_array_element(tmp_path):
         """)
 
 
-def test_write_aot_table(tmp_path):
+def test_write_aot_table(tmp_path: pathlib.Path) -> None:
     config = tmp_path / "config.toml"
 
     config.write_text(
@@ -100,12 +101,12 @@ def test_write_aot_table(tmp_path):
         """)
 
 
-def test_error_on_empty_path():
+def test_error_on_empty_path() -> None:
     with pytest.raises(ValueError, match="Cannot traverse an empty TOML path"):
         _writers.write_toml_value("foo.toml", "", "bar")
 
 
-def test_top_level_key_must_be_str(tmp_path):
+def test_top_level_key_must_be_str(tmp_path: pathlib.Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -122,7 +123,7 @@ def test_top_level_key_must_be_str(tmp_path):
         _writers.write_toml_value(pyproject, "1.bar", "baz")
 
 
-def test_terminal_non_string_lookup_error(tmp_path):
+def test_terminal_non_string_lookup_error(tmp_path: pathlib.Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
 
     pyproject.write_text(
@@ -137,7 +138,7 @@ def test_terminal_non_string_lookup_error(tmp_path):
         _writers.write_toml_value(pyproject, "project.version", "2.0")
 
 
-def test_scalar_value_at_destination(tmp_path):
+def test_scalar_value_at_destination(tmp_path: pathlib.Path) -> None:
     config = tmp_path / "config.toml"
 
     config.write_text(
@@ -155,7 +156,7 @@ def test_scalar_value_at_destination(tmp_path):
         _writers.write_toml_value(config, "foo.bar.baz", "2.0")
 
 
-def test_traversal_crosses_scalar_value(tmp_path):
+def test_traversal_crosses_scalar_value(tmp_path: pathlib.Path) -> None:
     config = tmp_path / "config.toml"
 
     config.write_text(

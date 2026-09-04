@@ -1,9 +1,18 @@
+import pathlib
 from textwrap import dedent as d
+
+import pytest
+
+from tests.acceptance.conftest import LineRunner
+from tests.types import ChdirType
 
 
 def test_read_python_requires_with_full_build_output_shows_all_data(
-    chdir, tmp_path, run_line, capfd
-):
+    chdir: ChdirType,
+    tmp_path: pathlib.Path,
+    run_line: LineRunner,
+    capfd: pytest.CaptureFixture[str],
+) -> None:
     setupcfg = tmp_path / "setup.cfg"
 
     setupcfg.write_text(
