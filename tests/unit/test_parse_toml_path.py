@@ -1,3 +1,5 @@
+import typing as t
+
 import pytest
 
 from mddj._internal._toml_path import ParseError, parse_toml_path
@@ -16,7 +18,7 @@ from mddj._internal._toml_path import ParseError, parse_toml_path
         ("''", [""]),
     ],
 )
-def test_valid_parse(path, expect_result):
+def test_valid_parse(path: str, expect_result: t.Any) -> None:
     assert parse_toml_path(path) == expect_result
 
 
@@ -39,6 +41,6 @@ def test_valid_parse(path, expect_result):
         (".x", "Leading '\\.' separator\\."),
     ],
 )
-def test_parse_error(path, expect_message):
+def test_parse_error(path: str, expect_message: str) -> None:
     with pytest.raises(ParseError, match=expect_message):
         parse_toml_path(path)
