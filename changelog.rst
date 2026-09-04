@@ -9,6 +9,7 @@ Unreleased
   ``DJ`` and then access its members.
 - Removed the ``project_dir`` from ``DJConfig``, as it was ambiguous when
   combined with discovery.
+- Removed support for tox version 3.
 
 0.6.0
 -----
