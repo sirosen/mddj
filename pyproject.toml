@@ -57,8 +57,8 @@ changelog = "https://github.com/sirosen/mddj/blob/main/CHANGELOG.md"
 mddj = "mddj._cli:main"
 
 [tool.flit.sdist]
-include = ["changelog.rst", "tests/**/*.py", "tox.ini", ".flake8", "justfile"]
-exclude = [".*", "src/**/.*"]
+include = ["changelog.rst", "tests/**/*.py", "tox.ini", ".flake8", "justfile", "toxfile.py"]
+exclude = ["**/.*", "**/*.egg-info", "**/__pycache__"]
 
 
 [tool.mddj.readthedocs]

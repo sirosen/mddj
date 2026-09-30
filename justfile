@@ -11,7 +11,7 @@ cog-update:
     uvx --from='cogapp==3.6.0' cog -r docs/cli_usage.rst
 
 check-sdist:
-    uvx --from='check-sdist==1.3.1' check-sdist --inject-junk
+    uvx --from='check-sdist==1.6.0' check-sdist --inject-junk
 
 publish: build
     uvx flit publish
