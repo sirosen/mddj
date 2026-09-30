@@ -1,8 +1,7 @@
 import contextlib
 import os
-import pathlib
 import sys
-import typing as t
+import types
 
 import pytest
 
@@ -17,15 +16,20 @@ def chdir() -> ChdirType:
 
     # based on the contents of contextlib for py3.11+
     class chdir:
-        def __init__(self, path: str | pathlib.Path) -> None:
+        def __init__(self, path: str | os.PathLike[str]) -> None:
             self.path = path
-            self._old_cwd = []
+            self._old_cwd: list[str] = []
 
         def __enter__(self) -> None:
             self._old_cwd.append(os.getcwd())
             os.chdir(self.path)
 
-        def __exit__(self, *excinfo: t.Any) -> None:
+        def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc_val: BaseException | None,
+            exc_tb: types.TracebackType | None,
+        ) -> None:
             os.chdir(self._old_cwd.pop())
 
     return chdir
