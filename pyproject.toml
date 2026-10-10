@@ -7,6 +7,7 @@ docs = [
 coverage = ["coverage"]
 test = ["pytest", "pytest-xdist", { include-group = "coverage" }]
 tox4 = ["tox >= 4, < 5"]
+nox = ["nox >= 2023.04.22"]
 
 
 [build-system]

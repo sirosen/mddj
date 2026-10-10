@@ -1,7 +1,6 @@
 # /// script
 # dependencies = ["nox", "mddj"]
 # ///
-import pathlib
 import shutil
 import sys
 
@@ -60,7 +59,9 @@ def lint_imports(session: nox.Session) -> None:
 @nox.session(
     python=PYTHONS, requires=["covclean"], allow_parallel=True, tags=["verify"]
 )
-@nox.parametrize("add_dependency_groups", [(), ("tox4",)], ids=["base", "tox"])
+@nox.parametrize(
+    "add_dependency_groups", [(), ("tox4", "nox")], ids=["base", "tox_and_nox"]
+)
 def test(session: nox.Session, add_dependency_groups: tuple[str, ...]) -> None:
     """Run tests."""
     session.install(
@@ -72,7 +73,7 @@ def test(session: nox.Session, add_dependency_groups: tuple[str, ...]) -> None:
         ),
     )
     session.install("-e.")
-    env = {"COVERAGE_FILE": str(pathlib.Path.cwd() / f".coverage.{session.python}")}
+    env = {}
     if _is_parallel(session):
         env.update({"PYTEST_XDIST_AUTO_NUM_WORKERS": "0"})
     session.run("coverage", "run", "-m", "pytest", "-v", *session.posargs, env=env)
