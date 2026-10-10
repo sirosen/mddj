@@ -29,3 +29,51 @@ def test_read_version_list_simple(
         result = run_line("mddj read nox list-versions")
 
     assert result.stdout == "3.10\n3.11\n"
+
+
+def test_read_version_list_from_subdirectory(
+    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
+) -> None:
+    noxfile = tmp_path / "noxfile.py"
+
+    noxfile.write_text(
+        d("""\
+            import nox
+
+            @nox.session(python=("3.8", "3.10", "3.11"))
+            def test(session):
+                pass
+            """),
+        encoding="utf-8",
+    )
+
+    subdir = tmp_path / "otherdir"
+    subdir.mkdir()
+
+    with chdir(subdir):
+        result = run_line("mddj read nox list-versions")
+
+    assert result.stdout == "3.8\n3.10\n3.11\n"
+
+
+def test_read_version_list_no_listed_versions(
+    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
+) -> None:
+    noxfile = tmp_path / "noxfile.py"
+
+    noxfile.write_text(
+        d("""\
+            import nox
+
+            @nox.session
+            def test(session):
+                pass
+            """),
+        encoding="utf-8",
+    )
+
+    with chdir(tmp_path):
+        result = run_line("mddj read nox list-versions")
+
+    assert result.stdout == ""
+    assert "Warning: no python versions detected from noxfile." in result.stderr

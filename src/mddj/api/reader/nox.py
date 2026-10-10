@@ -6,6 +6,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import types
 import typing as t
 
 from ..._internal import _discovery
@@ -55,18 +56,30 @@ class NoxReader(t.Protocol):
             return (sys.executable, "-m", "nox")
 
     @functools.cached_property
-    def _nox_listenvs(self) -> list[dict[str, t.Any]]:
-        output = subprocess.check_output(
-            [*self._nox_cmd, "--list", "--json"], text=True, stderr=subprocess.DEVNULL
-        )
-        return json.loads(output)  # type: ignore[no-any-return]
+    def _nox_listenvs(self) -> tuple[types.MappingProxyType[str, t.Any], ...]:
+        try:
+            output = subprocess.check_output(
+                [*self._nox_cmd, "--list", "--json"],
+                text=True,
+                stderr=subprocess.PIPE,
+                cwd=self._noxfile_dir,
+            )
+            data = json.loads(output)
+            return tuple(types.MappingProxyType(x) for x in data)
+        except subprocess.CalledProcessError as err:
+            if sys.version_info >= (3, 11):
+                reader_error = NoxReaderError("nox listing failed")
+                reader_error.add_note(err.stderr)
+            else:
+                reader_error = NoxReaderError(f"nox listing failed\n{err.stderr}")
+            raise reader_error from err
 
     @functools.cached_property
     def _python_versions_in_envlist(self) -> tuple[str, ...]:
         versions = set()
         for env_data in self._nox_listenvs:
-            if "python" in env_data:
-                versions.add(env_data["python"])
+            if py_version := env_data.get("python"):
+                versions.add(py_version)
         return tuple(sorted(versions))
 
     def list_python_versions(self) -> tuple[str, ...]:
