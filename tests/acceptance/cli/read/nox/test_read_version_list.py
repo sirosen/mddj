@@ -77,3 +77,22 @@ def test_read_version_list_no_listed_versions(
 
     assert result.stdout == ""
     assert "Warning: no python versions detected from noxfile." in result.stderr
+
+
+def test_read_version_list_empty_file_failure(
+    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
+) -> None:
+    noxfile = tmp_path / "noxfile.py"
+
+    noxfile.write_text(
+        d("""\
+            # zilch!
+            """),
+        encoding="utf-8",
+    )
+
+    with chdir(tmp_path):
+        result = run_line("mddj read nox list-versions", assert_exit_code=1)
+
+    assert result.stdout == ""
+    assert "NoxReaderError: nox listing failed" in result.stderr

@@ -8,10 +8,11 @@ import typing as t
 from ryaml import loads as _ryaml_loads  # type: ignore[attr-defined]
 
 from ...._internal import _cached_methods, _toml_path
+from ..._errors import MDDJError
 from ._config import ReadthedocsConfig
 
 
-class ReadthedocsConfigNotFoundError(ValueError):
+class ReadthedocsConfigNotFoundError(MDDJError, ValueError):
     pass
 
 

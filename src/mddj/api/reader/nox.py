@@ -10,9 +10,10 @@ import types
 import typing as t
 
 from ..._internal import _discovery
+from .._errors import MDDJError
 
 
-class NoxReaderError(RuntimeError):
+class NoxReaderError(MDDJError):
     """The class of errors which can be raised if ``nox`` data discovery fails."""
 
 
