@@ -43,6 +43,77 @@ class StaticPyprojectReader(t.Protocol):
         return self._read_string_array("dynamic")
 
     @_cached_methods.cached_method
+    def entry_points(
+        self,
+        *,
+        include: tuple[t.Literal["gui_scripts", "console_scripts"], ...] = (
+            "gui_scripts",
+            "console_scripts",
+        ),
+    ) -> types.MappingProxyType[str, types.MappingProxyType[str, str]] | None:
+        """
+        Fetch the [project.entry-points] table, with an include option which can select
+        the ``[project.gui_scripts]`` and ``[project.scripts]`` tables for inclusion as
+        well. By default, these tables are included.
+
+        Note that ``console_scripts`` in ``include`` corresponds with the
+        ``[project.scripts]`` table.
+
+        :param include: A tuple of table names, other than ``[project.entry-points]``,
+            which are part of the entry-points specification and should be included in
+            the result. To get only ``[project.entry-points]``, pass ``include=()``.
+        """
+        include_values: dict[str, types.MappingProxyType[str, str] | None] = {}
+        if "gui_scripts" in include:
+            include_values["gui_scripts"] = self.gui_scripts()
+        if "console_scripts" in include:
+            include_values["console_scripts"] = self.scripts()
+        include_values = {k: v for k, v in include_values.items() if v is not None}
+
+        value = self._read("entry-points")
+        if value is None:
+            if include_values:
+                return types.MappingProxyType(include_values)
+            return None
+
+        if not _types.is_toml_mapping(value):
+            raise StaticMetadataMalformed(
+                "Cannot read project.entry-points because it is not a TOML table."
+            )
+        for k, v in value.items():
+            if not _is_str_to_str_mapping(v):
+                raise StaticMetadataMalformed(
+                    f"Cannot read project.entry-points.{k!r} because it is not a TOML "
+                    "table with string values."
+                )
+        if "gui_scripts" in value:
+            raise StaticMetadataMalformed(
+                "Cannot read project.entry-points. "
+                "'gui_scripts' was present, making data ambiguous under spec."
+            )
+        if "console_scripts" in value:
+            raise StaticMetadataMalformed(
+                "Cannot read project.entry-points. "
+                "'console_scripts' was present, making data ambiguous under spec."
+            )
+        value.update(include_values)
+        return types.MappingProxyType(value)
+
+    @_cached_methods.cached_method
+    def gui_scripts(
+        self,
+    ) -> types.MappingProxyType[str, str] | None:
+        value = self._read("gui-scripts")
+        if value is None:
+            return None
+        if not _is_str_to_str_mapping(value):
+            raise StaticMetadataMalformed(
+                "Cannot read project.gui-scripts because it is not a TOML table with "
+                "string values."
+            )
+        return types.MappingProxyType(value)
+
+    @_cached_methods.cached_method
     def import_names(self) -> tuple[str, ...] | None:
         return self._read_string_array("import-names")
 
@@ -71,6 +142,20 @@ class StaticPyprojectReader(t.Protocol):
     @_cached_methods.cached_method
     def requires_python(self) -> str | None:
         return self._read_string("requires-python")
+
+    @_cached_methods.cached_method
+    def scripts(
+        self,
+    ) -> types.MappingProxyType[str, str] | None:
+        value = self._read("scripts")
+        if value is None:
+            return None
+        if not _is_str_to_str_mapping(value):
+            raise StaticMetadataMalformed(
+                "Cannot read project.scripts because it is not a TOML table with "
+                "string values."
+            )
+        return types.MappingProxyType(value)
 
     @_cached_methods.cached_method
     def version(self) -> str | None:
@@ -200,6 +285,12 @@ def _is_well_formed_contact_info_entry(entry: object) -> bool:
     if not all(isinstance(value, str) for value in entry.values()):
         return False
     return True
+
+
+def _is_str_to_str_mapping(value: object) -> bool:
+    if not _types.is_toml_mapping(value):
+        return False
+    return all(isinstance(k, str) and isinstance(v, str) for k, v in value.items())
 
 
 def _read_pyproject_toml_value(
