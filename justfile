@@ -1,17 +1,20 @@
 version := `uvx --from "." mddj read version`
 
+default:
+    @just --list
+
+verify:
+    nox -t verify -j auto
+
 serve-docs:
-    uvx --with 'tox-uv' tox r -e docs
-    python -m http.server 8000 -d .tox/docs/doc_build
+    uvx nox -s docs
+    python -m http.server 8000 -d docs/.nox/docs/doc_build
 
 build:
     uv build
 
 cog-update:
     uvx --from='cogapp==3.6.0' cog -r docs/cli_usage.rst
-
-check-sdist:
-    uvx --from='check-sdist==1.6.0' check-sdist --inject-junk
 
 publish: build
     uvx flit publish

@@ -1,6 +1,9 @@
-class MissingRequiredField(LookupError):
+from .._errors import MDDJError
+
+
+class MissingRequiredField(MDDJError, LookupError):
     pass
 
 
-class NotALowerBound(ValueError):
+class NotALowerBound(MDDJError, ValueError):
     pass

@@ -122,3 +122,18 @@ def test_discovery_finds_tox_tool_table_in_pyproject(tmp_path: pathlib.Path) -> 
 
     explorer = DirExplorer(loc)
     assert str(explorer.search_for("tox").dirpath) == str(loc)
+
+
+@pytest.mark.parametrize("vcs_indicator", (".git", ".hg", ".svn"))
+def test_discovery_can_find_noxfile(tmp_path: pathlib.Path, vcs_indicator: str) -> None:
+    (tmp_path / vcs_indicator).mkdir()
+    (tmp_path / "noxfile.py").touch()
+
+    loc = tmp_path / "subdir"
+    loc.mkdir()
+
+    explorer = DirExplorer(loc)
+    with pytest.raises(LookupError):
+        explorer.search_for("python-package")
+
+    assert str(explorer.search_for("nox").dirpath) == str(tmp_path)

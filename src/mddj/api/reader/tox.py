@@ -7,8 +7,10 @@ import subprocess
 import sys
 import typing as t
 
+from .._errors import MDDJError
 
-class ToxReaderError(RuntimeError):
+
+class ToxReaderError(MDDJError):
     """The class of errors which can be raised if ``tox`` data discovery fails."""
 
 

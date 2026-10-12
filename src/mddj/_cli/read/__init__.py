@@ -11,6 +11,7 @@ from .import_namespaces import read_import_namespaces
 from .keywords import read_keywords
 from .maintainers import read_maintainers
 from .name import read_name
+from .nox import read_nox
 from .optional_dependencies import read_optional_dependencies
 from .readthedocs import read_readthedocs
 from .requires_python import read_requires_python
@@ -41,3 +42,4 @@ read.add_command(read_version)
 read.add_command(read_readthedocs)
 read.add_command(read_sys)
 read.add_command(read_tox)
+read.add_command(read_nox)

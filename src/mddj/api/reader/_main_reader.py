@@ -12,6 +12,7 @@ from .dynamic_package import (
     DynamicPackageReader,
     _DynamicpackageReaderImplementation,
 )
+from .nox import NoxReader, _NoxReaderImplementation
 from .readthedocs import ReadthedocsReader
 from .readthedocs import _config as _readthedocs_config
 from .readthedocs import _ReadthedocsReaderImplementation
@@ -52,6 +53,11 @@ class Reader(t.Protocol):
     def tox(self) -> ToxReader:
         """a :class:`ToxReader` provided by this reader"""
         return _ToxReaderImplementation()
+
+    @functools.cached_property
+    def nox(self) -> NoxReader:
+        """a :class:`NoxReader` provided by this reader"""
+        return _NoxReaderImplementation(self._config.dir_explorer)
 
     @functools.cached_property
     def sys(self) -> SystemInfoReader:

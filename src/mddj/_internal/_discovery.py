@@ -10,7 +10,7 @@ import tomlkit
 from . import _cached_toml, _types
 
 Characteristic: t.TypeAlias = t.Literal[
-    "pyproject", "python-package", "tox", "readthedocs", "vcs-root"
+    "pyproject", "python-package", "tox", "nox", "readthedocs", "vcs-root"
 ]
 _VCS_INDICATORS: tuple[str, ...] = (".git", ".hg", ".svn")
 
@@ -116,6 +116,7 @@ _DIR_CONTENTS_DETECTORS: tuple[_DirContentsDetector, ...] = (
     _SetupPyPackageDetector(),
     _SimplePathDetector((".readthedocs.yaml", ".readthedocs.yml"), ("readthedocs",)),
     _SimplePathDetector(("tox.ini", "tox.toml"), ("tox",)),
+    _SimplePathDetector(("noxfile.py",), ("nox",)),
 )
 _PYPROJECT_CONTENT_DETECTORS: tuple[_ParsedPyprojectTomlDetector, ...] = (
     _ToxToolTableDetector(),

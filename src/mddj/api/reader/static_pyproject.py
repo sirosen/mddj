@@ -9,9 +9,10 @@ import tomlkit
 from packaging.utils import canonicalize_name
 
 from ..._internal import _cached_methods, _cached_toml, _discovery, _types
+from .._errors import MDDJError
 
 
-class StaticMetadataMalformed(ValueError):
+class StaticMetadataMalformed(MDDJError, ValueError):
     pass
 
 
