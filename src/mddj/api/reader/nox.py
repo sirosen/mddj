@@ -17,6 +17,12 @@ class NoxReaderError(MDDJError):
     """The class of errors which can be raised if ``nox`` data discovery fails."""
 
 
+class NoxReaderLookupError(NoxReaderError, LookupError):
+    """
+    An error for ``nox`` data discovery failure specifically due to a failed lookup.
+    """
+
+
 class NoxReader(t.Protocol):
     """
     A NoxReader is a specialized data reader for ``nox`` data.
@@ -97,7 +103,7 @@ class NoxReader(t.Protocol):
 
         sorted_versions = sorted(Version(v) for v in self._python_versions_in_envlist)
         if not sorted_versions:
-            raise LookupError("No nox version data found.")
+            raise NoxReaderLookupError("no python version data found.")
 
         return str(sorted_versions[0])
 
