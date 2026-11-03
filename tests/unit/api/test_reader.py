@@ -16,6 +16,12 @@ def _make_reader(config: ReaderConfig) -> _ReaderImplementation:
     return _ReaderImplementation(config)
 
 
+class FakeEntryPoint(t.NamedTuple):
+    group: str
+    name: str
+    value: str
+
+
 def make_fake_wheel_info(
     name: str = "foo",
     version: str = "0.0.1",
@@ -24,6 +30,7 @@ def make_fake_wheel_info(
     requires_python: str = ">= 3.7",
     requires_dist: tuple[str, ...] = ("bar", "baz", "colorama; extra == 'cli'"),
     provides_extra: tuple[str, ...] = ("cli",),
+    entry_points: tuple[FakeEntryPoint, ...] = (),
 ) -> t.Any:
     fake_meta = mock.Mock()
     fake_meta._data = {
@@ -54,9 +61,16 @@ def make_fake_wheel_info(
 
     fake_meta.get_all.side_effect = get_all
 
+    def ep_select(*, group):
+        return [ep for ep in entry_points if ep.group == group]
+
+    fake_eps = mock.Mock()
+    fake_eps.groups = list({ep.group for ep in entry_points})
+    fake_eps.select = ep_select
+
     fake_info = mock.Mock()
     fake_info.metadata = fake_meta
-    fake_info.entry_points = mock.Mock()
+    fake_info.entry_points = fake_eps
     fake_info.dependency_data = _wheel_metadata.load_wheel_dependency_data(fake_meta)
 
     return fake_info
@@ -171,3 +185,91 @@ def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
         "better-tracebacks; extra == 'cli'",
     }
     assert set(extras_exact["pretty"]) == {"better-tracebacks; extra == 'pretty'"}
+
+
+def test_metadata_reader_prefers_static_entry_points_data(
+    pyproject_path: pathlib.Path,
+    reader_config: ReaderConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pyproject_path.write_text(
+        d("""\
+            [project]
+            name = "foo"
+            version = "0.1"
+
+            [project.scripts]
+            foo-cli = 'foo.main:cli'
+            """),
+        encoding="utf-8",
+    )
+
+    reader = _make_reader(reader_config)
+
+    # replace the *descriptor*, not the instance value
+    monkeypatch.setattr(
+        DynamicPackageReader,
+        "_wheel_info",
+        make_fake_wheel_info(
+            # note that this is intentionally a little different from the static data
+            # given above
+            entry_points=(
+                FakeEntryPoint("console_scripts", "foo-bar-cli", "foo.main:main"),
+            ),
+        ),
+    )
+
+    # act! (load the data)
+    eps = reader.entry_points()
+
+    # assert:
+    # - the keys are console_scripts
+    # - there is only one value
+    # - that value maps 'foo-cli' to 'foo.main:cli' (static data)
+    # - we can also get the dynamic data explicitly
+    assert list(eps) == ["console_scripts"]
+    assert tuple(eps["console_scripts"].items()) == (("foo-cli", "foo.main:cli"),)
+
+    dynamic_eps = reader.dynamic.entry_points()
+    assert list(dynamic_eps) == ["console_scripts"]
+    assert tuple(dynamic_eps["console_scripts"].items()) == (
+        ("foo-bar-cli", "foo.main:main"),
+    )
+
+
+def test_metadata_reader_falls_back_to_dynamic_entry_points_data(
+    pyproject_path: pathlib.Path,
+    reader_config: ReaderConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pyproject_path.write_text(
+        d("""\
+            [project]
+            name = "foo"
+            version = "0.1"
+            """),
+        encoding="utf-8",
+    )
+
+    reader = _make_reader(reader_config)
+
+    # replace the *descriptor*, not the instance value
+    monkeypatch.setattr(
+        DynamicPackageReader,
+        "_wheel_info",
+        make_fake_wheel_info(
+            entry_points=(
+                FakeEntryPoint("console_scripts", "foo-cli", "foo.main:cli"),
+            ),
+        ),
+    )
+
+    # act! (load the data)
+    eps = reader.entry_points()
+
+    # assert:
+    # - the keys are console_scripts
+    # - there is only one value
+    # - that value maps 'foo-cli' to 'foo.main:cli'
+    assert list(eps) == ["console_scripts"]
+    assert tuple(eps["console_scripts"].items()) == (("foo-cli", "foo.main:cli"),)
