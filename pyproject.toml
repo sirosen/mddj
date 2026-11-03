@@ -4,7 +4,7 @@ docs = [
   "sphinx-issues<7",
   "furo==2025.12.19",
 ]
-coverage = ["coverage"]
+coverage = ["coverage[toml]"]
 test = ["pytest", "pytest-xdist", { include-group = "coverage" }]
 tox4 = ["tox >= 4, < 5"]
 nox = ["nox >= 2023.04.22"]
@@ -101,13 +101,11 @@ modules = [
 addopts = "-n auto --dist worksteal"
 
 [tool.coverage.run]
+patch = ["subprocess"]
 parallel = true
 source = ["mddj"]
 [tool.coverage.paths]
-source = [
-    "src/",
-    "*/site-packages/",
-]
+source = ["src/", "*/site-packages/"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
