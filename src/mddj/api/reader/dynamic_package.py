@@ -41,6 +41,23 @@ class DynamicPackageReader(t.Protocol):
         return self._read_string_array("Dynamic")
 
     @_cached_methods.cached_method
+    def entry_points(
+        self,
+    ) -> types.MappingProxyType[str, types.MappingProxyType[str, str]]:
+        """
+        Fetch the parsed Entry Points data, in the form of a mapping.
+
+        Unlike static metadata, there are no special options for inclusion/exclusion.
+        """
+        eps = self._wheel_entry_points
+        value: dict[str, types.MappingProxyType[str, str]] = {}
+        for groupname in eps.groups:
+            value[groupname] = types.MappingProxyType(
+                {e.name: e.value for e in eps.select(group=groupname)}
+            )
+        return types.MappingProxyType(value)
+
+    @_cached_methods.cached_method
     def import_names(self) -> tuple[str, ...]:
         return self._read_string_array("Import-Name")
 
