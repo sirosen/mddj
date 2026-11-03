@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections.abc
 import functools
+import sys
 import types
 import typing as t
 
@@ -10,6 +11,11 @@ from packaging.utils import canonicalize_name
 
 from ..._internal import _cached_methods, _cached_toml, _discovery, _types
 from .._errors import MDDJError
+
+if sys.version_info >= (3, 13):
+    from typing import TypeIs
+else:
+    from typing_extensions import TypeIs
 
 
 class StaticMetadataMalformed(MDDJError, ValueError):
@@ -63,12 +69,12 @@ class StaticPyprojectReader(t.Protocol):
             which are part of the entry-points specification and should be included in
             the result. To get only ``[project.entry-points]``, pass ``include=()``.
         """
-        include_values: dict[str, types.MappingProxyType[str, str] | None] = {}
+        include_values_: dict[str, types.MappingProxyType[str, str] | None] = {}
         if "gui_scripts" in include:
-            include_values["gui_scripts"] = self.gui_scripts()
+            include_values_["gui_scripts"] = self.gui_scripts()
         if "console_scripts" in include:
-            include_values["console_scripts"] = self.scripts()
-        include_values = {k: v for k, v in include_values.items() if v is not None}
+            include_values_["console_scripts"] = self.scripts()
+        include_values = {k: v for k, v in include_values_.items() if v is not None}
 
         value = self._read("entry-points")
         if value is None:
@@ -287,7 +293,7 @@ def _is_well_formed_contact_info_entry(entry: object) -> bool:
     return True
 
 
-def _is_str_to_str_mapping(value: object) -> bool:
+def _is_str_to_str_mapping(value: object) -> TypeIs[t.Mapping[str, str]]:
     if not _types.is_toml_mapping(value):
         return False
     return all(isinstance(k, str) and isinstance(v, str) for k, v in value.items())

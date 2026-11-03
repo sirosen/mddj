@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from mddj._internal import _cached_toml, _discovery
+from mddj._internal import _cached_toml, _discovery, _wheel_metadata
 from mddj.api.reader._config import ReaderConfig
 from mddj.api.reader._main_reader import _ReaderImplementation
 from mddj.api.reader.dynamic_package import DynamicPackageReader
@@ -16,7 +16,7 @@ def _make_reader(config: ReaderConfig) -> _ReaderImplementation:
     return _ReaderImplementation(config)
 
 
-def make_fake_package_metadata(
+def make_fake_wheel_info(
     name: str = "foo",
     version: str = "0.0.1",
     summary: str = "the foo pkg",
@@ -25,8 +25,8 @@ def make_fake_package_metadata(
     requires_dist: tuple[str, ...] = ("bar", "baz", "colorama; extra == 'cli'"),
     provides_extra: tuple[str, ...] = ("cli",),
 ) -> t.Any:
-    fake = mock.Mock()
-    fake._data = {
+    fake_meta = mock.Mock()
+    fake_meta._data = {
         "Name": name,
         "Version": version,
         "Summary": summary,
@@ -37,24 +37,29 @@ def make_fake_package_metadata(
     }
 
     def get(key: str) -> str | None:
-        value = fake._data.get(key)
+        value = fake_meta._data.get(key)
         if value is not None and not isinstance(value, str):
             pytest.fail(f"bad get() usage on key: {key}")
         return value
 
-    fake.get.side_effect = get
+    fake_meta.get.side_effect = get
 
     def get_all(key: str, failobj: t.Any = None) -> t.Any:
-        value = fake._data.get(key, failobj)
+        value = fake_meta._data.get(key, failobj)
         if value is failobj:
             return failobj
         if value is not None and not isinstance(value, tuple):
             pytest.fail(f"bad get_all() usage on key: {key}")
         return value
 
-    fake.get_all.side_effect = get_all
+    fake_meta.get_all.side_effect = get_all
 
-    return fake
+    fake_info = mock.Mock()
+    fake_info.metadata = fake_meta
+    fake_info.entry_points = mock.Mock()
+    fake_info.dependency_data = _wheel_metadata.load_wheel_dependency_data(fake_meta)
+
+    return fake_info
 
 
 @pytest.fixture
@@ -109,9 +114,7 @@ def test_metadata_reader_prefers_fields_from_static_metadata(
     reader = _make_reader(reader_config)
 
     # replace the *descriptor*, not the instance value
-    monkeypatch.setattr(
-        DynamicPackageReader, "_wheel_package_metadata", make_fake_package_metadata()
-    )
+    monkeypatch.setattr(DynamicPackageReader, "_wheel_info", make_fake_wheel_info())
 
     method = getattr(reader, read_method)
     assert method() == expect_result
@@ -138,8 +141,8 @@ def test_metadata_reader_pulls_dynamic_dependencies_and_handles_extras(
     # replace the *descriptor*, not the instance value
     monkeypatch.setattr(
         DynamicPackageReader,
-        "_wheel_package_metadata",
-        make_fake_package_metadata(
+        "_wheel_info",
+        make_fake_wheel_info(
             requires_dist=(
                 "bar",
                 "baz",

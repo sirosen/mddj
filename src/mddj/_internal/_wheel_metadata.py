@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import contextlib
 import dataclasses
+import functools
 import pathlib
 import re
+import tempfile
 import types
 import typing as t
 
@@ -30,22 +33,53 @@ class WheelDependencyData:
     dependencies: tuple[str, ...]
 
 
-def get_package_metadata(
+@dataclasses.dataclass
+class WheelInfo:
+    metadata: _importlib_metadata.PackageMetadata
+    entry_points: _importlib_metadata.EntryPoints
+
+    @functools.cached_property
+    def dependency_data(self) -> WheelDependencyData:
+        return load_wheel_dependency_data(self.metadata)
+
+
+def get_wheel_info(
     source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
-) -> _importlib_metadata.PackageMetadata:
-    """
-    Get metadata for wheel, either using the PEP 517 hook or by actually
-    doing a wheel build and examining the result.
-    """
-    import build.util
+) -> WheelInfo:
+    with _temporary_dist_info(source_dir, isolated=isolated, quiet=quiet) as dist:
+        return WheelInfo(metadata=dist.metadata, entry_points=dist.entry_points)
+
+
+@contextlib.contextmanager
+def _temporary_dist_info(
+    source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
+) -> t.Iterator[_importlib_metadata.PathDistribution]:
+    import build.env
     import pyproject_hooks
+
+    import build
 
     runner = pyproject_hooks.quiet_subprocess_runner
     if not quiet:
         runner = pyproject_hooks.default_subprocess_runner
-    return build.util.project_wheel_metadata(
-        source_dir, isolated=isolated, runner=runner
-    )
+
+    if isolated:
+        with build.env.DefaultIsolatedEnv() as env:
+            builder = build.ProjectBuilder.from_isolated_env(
+                env, source_dir, runner=runner
+            )
+            env.install(builder.build_system_requires)
+            env.install(builder.get_requires_for_build("wheel"))
+
+            with tempfile.TemporaryDirectory() as tmp:
+                dist_info = pathlib.Path(builder.metadata_path(tmp))
+                yield _importlib_metadata.PathDistribution(dist_info)
+    else:
+        builder = build.ProjectBuilder(source_dir, runner=runner)
+        with tempfile.TemporaryDirectory() as tmp:
+            yield _importlib_metadata.PathDistribution(
+                pathlib.Path(builder.metadata_path(tmp))
+            )
 
 
 def load_wheel_dependency_data(
