@@ -61,7 +61,7 @@ def make_fake_wheel_info(
 
     fake_meta.get_all.side_effect = get_all
 
-    def ep_select(*, group):
+    def ep_select(*, group: str) -> list[FakeEntryPoint]:
         return [ep for ep in entry_points if ep.group == group]
 
     fake_eps = mock.Mock()

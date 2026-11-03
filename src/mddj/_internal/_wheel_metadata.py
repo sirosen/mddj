@@ -54,10 +54,9 @@ def get_wheel_info(
 def _temporary_dist_info(
     source_dir: pathlib.Path, isolated: bool = True, quiet: bool = True
 ) -> t.Iterator[_importlib_metadata.PathDistribution]:
+    import build
     import build.env
     import pyproject_hooks
-
-    import build
 
     runner = pyproject_hooks.quiet_subprocess_runner
     if not quiet:
