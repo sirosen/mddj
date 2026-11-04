@@ -41,6 +41,23 @@ class DynamicPackageReader(t.Protocol):
         return self._read_string_array("Dynamic")
 
     @_cached_methods.cached_method
+    def entry_points(
+        self,
+    ) -> types.MappingProxyType[str, types.MappingProxyType[str, str]]:
+        """
+        Fetch the parsed Entry Points data, in the form of a mapping.
+
+        Unlike static metadata, there are no special options for inclusion/exclusion.
+        """
+        eps = self._wheel_entry_points
+        value: dict[str, types.MappingProxyType[str, str]] = {}
+        for groupname in eps.groups:
+            value[groupname] = types.MappingProxyType(
+                {e.name: e.value for e in eps.select(group=groupname)}
+            )
+        return types.MappingProxyType(value)
+
+    @_cached_methods.cached_method
     def import_names(self) -> tuple[str, ...]:
         return self._read_string_array("Import-Name")
 
@@ -94,16 +111,24 @@ class DynamicPackageReader(t.Protocol):
     # internal lookup APIs
 
     @functools.cached_property
-    def _wheel_package_metadata(self) -> _importlib_metadata.PackageMetadata:
-        return _wheel_metadata.get_package_metadata(
+    def _wheel_info(self) -> _wheel_metadata.WheelInfo:
+        return _wheel_metadata.get_wheel_info(
             self._dir_explorer.search_for("python-package").dirpath,
             isolated=self._isolated_builds,
             quiet=self._capture_build_output,
         )
 
     @functools.cached_property
+    def _wheel_package_metadata(self) -> _importlib_metadata.PackageMetadata:
+        return self._wheel_info.metadata
+
+    @functools.cached_property
+    def _wheel_entry_points(self) -> _importlib_metadata.EntryPoints:
+        return self._wheel_info.entry_points
+
+    @functools.cached_property
     def _parsed_wheel_dependency_data(self) -> _wheel_metadata.WheelDependencyData:
-        return _wheel_metadata.load_wheel_dependency_data(self._wheel_package_metadata)
+        return self._wheel_info.dependency_data
 
     def _read(self, key: str) -> str | None:
         return self._wheel_package_metadata.get(key)  # type: ignore[no-any-return]

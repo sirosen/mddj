@@ -38,3 +38,9 @@ def test_my_import_names_are_stated(run_line: LineRunner) -> None:
 def test_i_have_no_namespaces(run_line: LineRunner) -> None:
     result = run_line("mddj read import-namespaces")
     assert result.stdout == ""
+
+
+def test_i_have_an_mddj_console_script(run_line: LineRunner) -> None:
+    result = run_line("mddj read entry-points --group console_scripts")
+    assert result.stdout.startswith("mddj = ")
+    assert len(result.stdout.splitlines()) == 1

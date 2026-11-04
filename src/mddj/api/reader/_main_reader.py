@@ -137,6 +137,35 @@ class Reader(t.Protocol):
         return value
 
     @_cached_methods.cached_method
+    def entry_points(
+        self,
+    ) -> types.MappingProxyType[str, types.MappingProxyType[str, str]]:
+        """
+        Fetch the Entry Points data, in the form of a nested mapping.
+
+        The top-level keys are the group names, the next level keys are the item names,
+        and their values are the values in entry point data.
+
+        When read from ``pyproject.toml``, the ``[project.entry-points]`` and
+        ``[project.gui_scripts]`` tables are both read to populate the data, and the
+        ``[project.scripts]`` table is read under its canonical metadata name,
+        ``"console_scripts"``. This makes the static and dynamic data sources uniform.
+
+        For more fine-tuned control, use the ``static`` reader explicitly. For example:
+
+        .. code-block:: pycon
+
+            >>> from mddj.api import DJ
+            >>> dj = DJ()
+            # excludes project.gui_scripts and project.console_scripts
+            >>> dj.read.static.entry_points(include=())
+        """
+        value = self.static.entry_points()
+        if value is None:
+            value = self.dynamic.entry_points()
+        return value
+
+    @_cached_methods.cached_method
     def import_names(self) -> tuple[str, ...]:
         value = self.static.import_names()
         if value is None:

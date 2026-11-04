@@ -6,6 +6,7 @@ from .authors import read_authors
 from .classifiers import read_classifiers
 from .dependencies import read_dependencies
 from .description import read_description
+from .entry_points import read_entry_points
 from .import_names import read_import_names
 from .import_namespaces import read_import_namespaces
 from .keywords import read_keywords
@@ -30,6 +31,7 @@ read.add_command(read_authors)
 read.add_command(read_classifiers)
 read.add_command(read_dependencies)
 read.add_command(read_description)
+read.add_command(read_entry_points)
 read.add_command(read_import_names)
 read.add_command(read_import_namespaces)
 read.add_command(read_keywords)
