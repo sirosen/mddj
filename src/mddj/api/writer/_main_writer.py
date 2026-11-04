@@ -86,7 +86,7 @@ class Writer(t.Protocol):
 
     def requires_python(
         self, new_requires_python: str, *, verbatim: bool = False
-    ) -> str:
+    ) -> str | None:
         """
         Write a new requires-python bound into the project metadata, returning the old
         bound. This only supports writing to `pyproject.toml`.
@@ -116,6 +116,7 @@ class Writer(t.Protocol):
             key,
             value,
             loaded_document=self._config.document_cache.load(file_path),
+            allow_missing=True,
         )
 
 
