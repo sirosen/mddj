@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import functools
 import pathlib
+import re
 import typing as t
 
 from ..._internal import _writers
 from . import _config
+
+_VALID_REQUIRES_PYTHON_VERSION_BOUND_PATTERN = re.compile(r"3\.\d+(\.\d+)?")
 
 
 class Writer(t.Protocol):
@@ -80,6 +83,41 @@ class Writer(t.Protocol):
             )
 
         return result
+
+    def requires_python(
+        self, new_requires_python: str, *, verbatim: bool = False
+    ) -> str | None:
+        """
+        Write a new requires-python bound into the project metadata, returning the old
+        bound. This only supports writing to `pyproject.toml`.
+
+        :param verbatim: Treat the new value as a verbatim string to write. By default,
+            it is checked to see that it's a valid Python version and written as a `>=`
+            bound.
+        """
+        file_path = self._python_project_directory / "pyproject.toml"
+        key = "project.requires-python"
+        if verbatim:
+            value: str = new_requires_python
+        else:
+            if not _VALID_REQUIRES_PYTHON_VERSION_BOUND_PATTERN.fullmatch(
+                new_requires_python
+            ):
+                raise ValueError(
+                    "requires-python lower bounds must be Python 3.x version numbers, "
+                    f"got {new_requires_python!r}. "
+                    "In order to use more complete requires-python syntax, pass "
+                    "`verbatim=True`."
+                )
+            value = f">={new_requires_python}"
+
+        return _writers.write_toml_value(
+            file_path,
+            key,
+            value,
+            loaded_document=self._config.document_cache.load(file_path),
+            allow_missing=True,
+        )
 
 
 class _WriterImplementation(Writer):

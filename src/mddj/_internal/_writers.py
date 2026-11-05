@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pathlib
 import re
+import typing as t
 
 import tomlkit
 
@@ -41,13 +42,36 @@ def write_simple_assignment(
         return old_value.strip("'\"")
 
 
+@t.overload
 def write_toml_value(
     path: str | pathlib.Path,
     target: str,
     value: str,
     *,
     loaded_document: tomlkit.TOMLDocument | None = None,
-) -> str:
+    allow_missing: t.Literal[False] = False,
+) -> str: ...
+
+
+@t.overload
+def write_toml_value(
+    path: str | pathlib.Path,
+    target: str,
+    value: str,
+    *,
+    loaded_document: tomlkit.TOMLDocument | None = None,
+    allow_missing: t.Literal[True],
+) -> str | None: ...
+
+
+def write_toml_value(
+    path: str | pathlib.Path,
+    target: str,
+    value: str,
+    *,
+    loaded_document: tomlkit.TOMLDocument | None = None,
+    allow_missing: bool = False,
+) -> str | None:
     """
     Write a value to a given target (as a string) in a TOML file.
 
@@ -71,13 +95,22 @@ def write_toml_value(
 
     if is_toml_mapping(write_container):
         if isinstance(key, str):
-            old_value = write_container[key]
+            if allow_missing:
+                old_value = write_container.get(key)
+            else:
+                old_value = write_container[key]
         else:
             msg = "TOML traversal found subtable, but final key in path was an int."
             raise LookupError(msg)
     elif is_toml_array(write_container):
         if isinstance(key, int):
-            old_value = write_container[key]
+            if allow_missing:
+                if key < len(write_container):
+                    old_value = write_container[key]
+                else:
+                    old_value = None
+            else:
+                old_value = write_container[key]
         else:
             msg = "TOML traversal found subtable, but final key in path was a string."
             raise LookupError(msg)
@@ -88,7 +121,12 @@ def write_toml_value(
         )
         raise LookupError(msg)
 
-    if old_value.value == value:
+    if old_value is None:
+        write_container[key] = tomlkit.string(value)  # type: ignore[index]
+        with path.open("w", encoding="utf-8") as write_file_descriptor:
+            tomlkit.dump(doc, write_file_descriptor)
+        return None
+    elif old_value.value == value:
         return value
     elif isinstance(old_value, tomlkit.items.String):
         # check string quoting style
