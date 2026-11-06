@@ -14,6 +14,7 @@ from .maintainers import read_maintainers
 from .name import read_name
 from .nox import read_nox
 from .optional_dependencies import read_optional_dependencies
+from .readme import read_readme
 from .readthedocs import read_readthedocs
 from .requires_python import read_requires_python
 from .sys import read_sys
@@ -38,6 +39,7 @@ read.add_command(read_keywords)
 read.add_command(read_maintainers)
 read.add_command(read_name)
 read.add_command(read_optional_dependencies)
+read.add_command(read_readme)
 read.add_command(read_requires_python)
 read.add_command(read_version)
 

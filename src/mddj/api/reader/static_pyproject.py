@@ -146,6 +146,50 @@ class StaticPyprojectReader(t.Protocol):
         return self._read_string("name")
 
     @_cached_methods.cached_method
+    def readme(
+        self, *, content: bool = False
+    ) -> str | types.MappingProxyType[str, str] | None:
+        """
+        Get the readme.
+
+        When reading a separate readme file, raises an error if the file does not exist.
+        Returns ``None`` if there is no readme declared.
+
+        :param content: When true, get the content of the readme, rather than readme
+            metadata as stored in ``pyproject.toml``.
+        """
+        value = self._read("readme")
+        if value is None:
+            return None
+        elif isinstance(value, str):
+            if content:
+                return self._readme_file_content(value)
+            else:
+                return value
+        elif _is_str_to_str_mapping(value):
+            if content:
+                if "file" in value and "text" in value:
+                    raise StaticMetadataMalformed(
+                        "project.readme is invalid. "
+                        "'file' and 'text' are mutually exclusive."
+                    )
+                elif "file" in value:
+                    return self._readme_file_content(value["file"])
+                elif "text" in value:
+                    return value["text"]
+            else:
+                return types.MappingProxyType(value)
+        else:
+            raise StaticMetadataMalformed(
+                "Cannot read project.readme because it is not a TOML table with "
+                "string values or a single string."
+            )
+
+    @_cached_methods.cached_method
+    def _readme_file_content(self, relpath: str) -> str:
+        return (self._dir_explorer.pyproject_path.parent / relpath).read_text()
+
+    @_cached_methods.cached_method
     def requires_python(self) -> str | None:
         return self._read_string("requires-python")
 

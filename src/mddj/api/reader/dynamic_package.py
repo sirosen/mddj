@@ -101,6 +101,37 @@ class DynamicPackageReader(t.Protocol):
         return self._read("Name")
 
     @_cached_methods.cached_method
+    def readme(
+        self, *, content: bool = False
+    ) -> str | types.MappingProxyType[str, str] | None:
+        """
+        Get the readme data (the "Description" and "Description-Content-Type" fields).
+
+        Returns ``None`` if there is no readme data.
+
+        :param content: When true, get the 'Description' field only.
+        """
+        body = self._read("Description")
+        if body is None:
+            return None
+
+        if content:
+            return body
+
+        content_type = self._read("Description-Content-Type")
+        if content_type is None:
+            type_field, *other_fields = "text/x-rst", ()
+        else:
+            type_field, *other_fields = content_type.split(";")
+        optional_params = {}
+        for field in other_fields:
+            if field.startswith("charset="):
+                optional_params["charset"] = field.split("=", maxsplit=1)[-1]
+        return types.MappingProxyType(
+            {"text": body, "content-type": type_field, **optional_params}
+        )
+
+    @_cached_methods.cached_method
     def requires_python(self) -> str | None:
         return self._read("Requires-Python")
 
