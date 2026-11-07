@@ -177,6 +177,10 @@ class StaticPyprojectReader(t.Protocol):
                     return self._readme_file_content(value["file"])
                 elif "text" in value:
                     return value["text"]
+                else:
+                    raise StaticMetadataMalformed(
+                        "pyproject.readme is invalid. 'file' or 'text' must be present."
+                    )
             else:
                 return types.MappingProxyType(value)
         else:
@@ -186,8 +190,11 @@ class StaticPyprojectReader(t.Protocol):
             )
 
     @_cached_methods.cached_method
-    def _readme_file_content(self, relpath: str) -> str:
-        return (self._dir_explorer.pyproject_path.parent / relpath).read_text()
+    def _readme_file_content(self, relpath: str) -> str | None:
+        pyproject_path = self._dir_explorer.pyproject_path
+        if not pyproject_path:
+            return None
+        return (pyproject_path.parent / relpath).read_text()
 
     @_cached_methods.cached_method
     def requires_python(self) -> str | None:
