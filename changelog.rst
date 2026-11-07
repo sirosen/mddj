@@ -10,6 +10,7 @@ Unreleased
 - Removed the ``project_dir`` from ``DJConfig``, as it was ambiguous when
   combined with discovery.
 - Removed support for tox version 3.
+- Removed support for Python 3.10.
 
 0.6.0
 -----

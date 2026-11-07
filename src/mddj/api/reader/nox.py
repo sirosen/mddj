@@ -74,11 +74,8 @@ class NoxReader(t.Protocol):
             data = json.loads(output)
             return tuple(types.MappingProxyType(x) for x in data)
         except subprocess.CalledProcessError as err:
-            if sys.version_info >= (3, 11):
-                reader_error = NoxReaderError("nox listing failed")
-                reader_error.add_note(err.stderr)
-            else:
-                reader_error = NoxReaderError(f"nox listing failed\n{err.stderr}")
+            reader_error = NoxReaderError("nox listing failed")
+            reader_error.add_note(err.stderr)
             raise reader_error from err
 
     @functools.cached_property

@@ -10,8 +10,6 @@ from textwrap import dedent as d
 import click.testing
 import pytest
 
-from tests.types import ChdirType
-
 _PYTEST_VERBOSE = False
 
 _OutputSearchType: t.TypeAlias = (
@@ -88,13 +86,12 @@ def run_line(cli_runner: click.testing.CliRunner) -> object:
 
 @dataclasses.dataclass
 class CliEnv:
-    _chdir: ChdirType
     dir: pathlib.Path
     run_line: LineRunner
 
     @contextlib.contextmanager
     def chdir(self, path: str | pathlib.Path | None = None) -> t.Iterator[None]:
-        with self._chdir(path or self.dir):
+        with contextlib.chdir(path or self.dir):
             yield
 
     @property
@@ -111,8 +108,8 @@ class CliEnv:
 
 
 @pytest.fixture
-def cli_env(chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner) -> CliEnv:
-    return CliEnv(chdir, tmp_path, run_line)
+def cli_env(tmp_path: pathlib.Path, run_line: LineRunner) -> CliEnv:
+    return CliEnv(tmp_path, run_line)
 
 
 def _assert_matches(text: str, text_name: str, search: _OutputSearchType) -> None:

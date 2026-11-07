@@ -1,17 +1,15 @@
+import contextlib
 import pathlib
 from textwrap import dedent as d
 
 import pytest
 
 from tests.acceptance.conftest import LineRunner
-from tests.types import ChdirType
 
 nox = pytest.importorskip("nox")
 
 
-def test_read_min_version_simple(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
-) -> None:
+def test_read_min_version_simple(tmp_path: pathlib.Path, run_line: LineRunner) -> None:
     noxfile = tmp_path / "noxfile.py"
 
     noxfile.write_text(
@@ -25,14 +23,14 @@ def test_read_min_version_simple(
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         result = run_line("mddj read nox min-version")
 
     assert result.stdout == "3.9\n"
 
 
 def test_read_min_version_empty_file_failure(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
+    tmp_path: pathlib.Path, run_line: LineRunner
 ) -> None:
     noxfile = tmp_path / "noxfile.py"
 
@@ -43,7 +41,7 @@ def test_read_min_version_empty_file_failure(
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         result = run_line("mddj read nox min-version", assert_exit_code=1)
 
     assert result.stdout == ""
@@ -51,7 +49,7 @@ def test_read_min_version_empty_file_failure(
 
 
 def test_read_nox_min_version_no_explicit_values(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
+    tmp_path: pathlib.Path, run_line: LineRunner
 ) -> None:
     noxfile = tmp_path / "noxfile.py"
 
@@ -66,7 +64,7 @@ def test_read_nox_min_version_no_explicit_values(
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         result = run_line("mddj read nox min-version", assert_exit_code=1)
 
     assert result.stdout == ""

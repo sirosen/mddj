@@ -1,10 +1,10 @@
+import contextlib
 import pathlib
 from textwrap import dedent as d
 
 import pytest
 
 from tests.acceptance.conftest import LineRunner
-from tests.types import ChdirType
 
 tox = pytest.importorskip("tox")
 if hasattr(tox.version, "version_tuple"):
@@ -13,9 +13,7 @@ else:
     TOX_MAJOR_VERSION = 3
 
 
-def test_read_version_list_simple(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
-) -> None:
+def test_read_version_list_simple(tmp_path: pathlib.Path, run_line: LineRunner) -> None:
     toxini = tmp_path / "tox.ini"
 
     toxini.write_text(
@@ -29,7 +27,7 @@ def test_read_version_list_simple(
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         result = run_line("mddj read tox list-versions")
 
     assert result.stdout == "3.5\n3.6\n3.7\n3.8\n3.9\n3.10\n"
@@ -37,7 +35,7 @@ def test_read_version_list_simple(
 
 @pytest.mark.skipif(TOX_MAJOR_VERSION < 4, reason="requires tox v4")
 def test_read_version_list_no_py_prefix(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
+    tmp_path: pathlib.Path, run_line: LineRunner
 ) -> None:
     toxini = tmp_path / "tox.ini"
 
@@ -52,14 +50,14 @@ def test_read_version_list_no_py_prefix(
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         result = run_line("mddj read tox list-versions")
 
     assert result.stdout == "3.11\n3.12\n"
 
 
 def test_read_version_list_with_repeats_and_factors(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
+    tmp_path: pathlib.Path, run_line: LineRunner
 ) -> None:
     toxini = tmp_path / "tox.ini"
 
@@ -76,7 +74,7 @@ def test_read_version_list_with_repeats_and_factors(
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         result = run_line("mddj read tox list-versions")
 
     assert result.stdout == "3.5\n3.6\n3.7\n3.8\n3.9\n3.10\n"

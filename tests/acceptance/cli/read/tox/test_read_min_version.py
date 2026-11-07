@@ -1,17 +1,15 @@
+import contextlib
 import pathlib
 from textwrap import dedent as d
 
 import pytest
 
 from tests.acceptance.conftest import LineRunner
-from tests.types import ChdirType
 
 pytest.importorskip("tox")
 
 
-def test_read_min_version_success(
-    chdir: ChdirType, tmp_path: pathlib.Path, run_line: LineRunner
-) -> None:
+def test_read_min_version_success(tmp_path: pathlib.Path, run_line: LineRunner) -> None:
     toxini = tmp_path / "tox.ini"
 
     toxini.write_text(
@@ -25,5 +23,5 @@ def test_read_min_version_success(
         encoding="utf-8",
     )
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         run_line("mddj read tox min-version", search_stdout="3.5")
