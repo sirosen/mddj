@@ -13,9 +13,8 @@ from .dynamic_package import (
     _DynamicpackageReaderImplementation,
 )
 from .nox import NoxReader, _NoxReaderImplementation
-from .readthedocs import ReadthedocsReader
+from .readthedocs import ReadthedocsReader, _ReadthedocsReaderImplementation
 from .readthedocs import _config as _readthedocs_config
-from .readthedocs import _ReadthedocsReaderImplementation
 from .static_pyproject import (
     StaticPyprojectReader,
     _StaticPyprojectReaderImplementation,
