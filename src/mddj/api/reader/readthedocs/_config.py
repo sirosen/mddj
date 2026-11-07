@@ -1,16 +1,9 @@
 from __future__ import annotations
 
 import dataclasses
-import sys
 import typing as t
 
 from ...._internal import _cached_toml, _discovery
-
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
-
 
 PythonVersionExtraction: t.TypeAlias = t.Literal["verbatim", "parse_uv_tool_install"]
 
@@ -27,7 +20,7 @@ class ReadthedocsConfig:
         *,
         dir_explorer: _discovery.DirExplorer,
         document_cache: _cached_toml.TomlDocumentCache,
-    ) -> Self:
+    ) -> t.Self:
         import tomlkit
 
         if not dir_explorer.pyproject_path:

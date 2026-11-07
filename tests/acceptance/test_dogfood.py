@@ -24,7 +24,7 @@ def _in_repo_root() -> t.Iterator[None]:
 
 
 def test_requires_python(run_line: LineRunner) -> None:
-    run_line("mddj read requires-python", search_stdout=r"^>=3\.10$")
+    run_line("mddj read requires-python", search_stdout=r"^>=3\.11$")
 
 
 def test_say_my_name(run_line: LineRunner) -> None:

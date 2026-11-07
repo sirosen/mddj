@@ -3,15 +3,9 @@ from __future__ import annotations
 import dataclasses
 import functools
 import pathlib
-import sys
 import typing as t
 
 from ..._internal import _cached_toml, _discovery
-
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
 
 _WRITE_VERSION_MODES = ("assign", "toml")
 
@@ -32,7 +26,7 @@ class WriterConfig:
         *,
         dir_explorer: _discovery.DirExplorer,
         document_cache: _cached_toml.TomlDocumentCache,
-    ) -> Self:
+    ) -> t.Self:
         import tomlkit
 
         if dir_explorer.pyproject_path is None:
@@ -95,7 +89,7 @@ class WriteVersionTomlSettings:
     toml_path: str
 
     @classmethod
-    def parse(cls, config_str: str) -> Self:
+    def parse(cls, config_str: str) -> t.Self:
         if ":" in config_str:
             file_path, _, toml_path = config_str.partition(":")
             file_path = file_path.strip()
@@ -113,7 +107,7 @@ class WriteVersionAssignSettings:
     key: str
 
     @classmethod
-    def parse(cls, config_str: str) -> Self:
+    def parse(cls, config_str: str) -> t.Self:
         if ":" in config_str:
             file_path, _, key = config_str.partition(":")
             file_path = file_path.strip()

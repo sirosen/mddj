@@ -1,3 +1,4 @@
+import contextlib
 import pathlib
 import typing as t
 from textwrap import dedent as d
@@ -9,7 +10,6 @@ from mddj._internal import _cached_toml, _discovery, _wheel_metadata
 from mddj.api.reader._config import ReaderConfig
 from mddj.api.reader._main_reader import _ReaderImplementation
 from mddj.api.reader.dynamic_package import DynamicPackageReader
-from tests.types import ChdirType
 
 
 def _make_reader(config: ReaderConfig) -> _ReaderImplementation:
@@ -82,8 +82,8 @@ def pyproject_path(tmp_path: pathlib.Path) -> pathlib.Path:
 
 
 @pytest.fixture
-def reader_config(tmp_path: pathlib.Path, chdir: ChdirType) -> t.Iterator[ReaderConfig]:
-    with chdir(tmp_path):
+def reader_config(tmp_path: pathlib.Path) -> t.Iterator[ReaderConfig]:
+    with contextlib.chdir(tmp_path):
         yield _ReaderImplementation._ConfigClass(
             dir_explorer=_discovery.DirExplorer(tmp_path),
             document_cache=_cached_toml.TomlDocumentCache(),

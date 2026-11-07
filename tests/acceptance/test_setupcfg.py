@@ -1,14 +1,13 @@
+import contextlib
 import pathlib
 from textwrap import dedent as d
 
 import pytest
 
 from tests.acceptance.conftest import LineRunner
-from tests.types import ChdirType
 
 
 def test_read_python_requires_with_full_build_output_shows_all_data(
-    chdir: ChdirType,
     tmp_path: pathlib.Path,
     run_line: LineRunner,
     capfd: pytest.CaptureFixture[str],
@@ -34,7 +33,7 @@ def test_read_python_requires_with_full_build_output_shows_all_data(
     )
     (tmp_path / "foopkg.py").touch()
 
-    with chdir(tmp_path):
+    with contextlib.chdir(tmp_path):
         result = run_line(
             "mddj read requires-python",
             search_stdout=r"^>=3\.10$",

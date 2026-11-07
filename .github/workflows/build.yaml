@@ -43,7 +43,7 @@ jobs:
             runner: windows-latest
           - name: macOS
             runner: macos-latest
-        py: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        py: ['3.11', '3.12', '3.13', '3.14']
         factor:
           - name: base
             tox_command: 'run -e py'
