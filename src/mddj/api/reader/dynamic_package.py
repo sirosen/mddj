@@ -2,15 +2,21 @@ from __future__ import annotations
 
 import email.utils
 import functools
+import string
 import types
 import typing as t
 
 from ..._internal import _cached_methods, _discovery, _wheel_metadata
+from .._errors import MDDJError
 
 try:
     import importlib_metadata as _importlib_metadata
 except ImportError:
     import importlib.metadata as _importlib_metadata
+
+
+class DynamicMetadataMalformed(MDDJError, ValueError):
+    pass
 
 
 class DynamicPackageReader(t.Protocol):
@@ -136,6 +142,42 @@ class DynamicPackageReader(t.Protocol):
         return self._read("Requires-Python")
 
     @_cached_methods.cached_method
+    def urls(self, *, normalize: bool = False) -> types.MappingProxyType[str, str]:
+        """
+        Fetch the Project-URL values.
+
+        Because Project-URL is defined as delimited by a single comma, this method will
+        raise an error if any values have more than one comma or no commas.
+
+        :param normalized: Normalize the keys in the result, removing punctuation and
+            whitespace and converting to lowercase. If normalization causes conflicts,
+            an error will be raised.
+        """
+        raw_values = self._read_string_array("Project-URL")
+        split_values = [s.split(",") for s in raw_values]
+        if any(len(s) != 2 for s in split_values):
+            raise DynamicMetadataMalformed(
+                "Cannot load Project-URLs. At least one value splits improperly: "
+                f"{split_values!r}"
+            )
+        value = dict(split_values)
+        if len(value) != len(split_values):
+            raise DynamicMetadataMalformed(
+                "Cannot load Project-URLs. One of the URL names repeats: "
+                f"{split_values!r}"
+            )
+
+        if normalize:
+            normed = {_normalize_url(key): val for key, val in value.items()}
+            if len(normed) != len(value):
+                raise DynamicMetadataMalformed(
+                    "Cannot normalize Project-URLs because two or more keys conflict: "
+                    f"{list(value.keys())!r}"
+                )
+            return types.MappingProxyType(normed)
+        return types.MappingProxyType(value)
+
+    @_cached_methods.cached_method
     def version(self) -> str | None:
         return self._read("Version")
 
@@ -232,3 +274,11 @@ def _parse_emails_to_contact_info(emails: str) -> list[dict[str, str]]:
             item["email"] = address
         ret.append(item)
     return ret
+
+
+_url_chars_to_remove = string.punctuation + string.whitespace
+_url_removal_map = str.maketrans("", "", _url_chars_to_remove)
+
+
+def _normalize_url(label: str) -> str:
+    return label.translate(_url_removal_map).lower()

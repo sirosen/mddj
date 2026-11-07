@@ -19,6 +19,7 @@ from .readthedocs import read_readthedocs
 from .requires_python import read_requires_python
 from .sys import read_sys
 from .tox import read_tox
+from .urls import read_urls
 from .version import read_version
 
 
@@ -41,6 +42,7 @@ read.add_command(read_name)
 read.add_command(read_optional_dependencies)
 read.add_command(read_readme)
 read.add_command(read_requires_python)
+read.add_command(read_urls)
 read.add_command(read_version)
 
 read.add_command(read_readthedocs)
