@@ -232,6 +232,24 @@ class Reader(t.Protocol):
         return value
 
     @_cached_methods.cached_method
+    def readme(
+        self, *, content: bool = False
+    ) -> str | types.MappingProxyType[str, str] | None:
+        """
+        Get the readme.
+
+        When reading a separate readme file, raises an error if the file does not exist.
+        Returns ``None`` if there is no readme declared.
+
+        :param content: When true, get the content of the readme, rather than the readme
+            metadata from ``pyproject.toml`` or core metadata fields.
+        """
+        value = self.static.readme(content=content)
+        if value is None:
+            value = self.dynamic.readme(content=content)
+        return value
+
+    @_cached_methods.cached_method
     def requires_python(self, *, lower_bound: bool = False) -> str | None:
         """
         Get the Requires-Python bound for the project.
