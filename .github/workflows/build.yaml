@@ -47,8 +47,8 @@ jobs:
         factor:
           - name: base
             tox_command: 'run -e py'
-          - name: tox v4
-            tox_command: 'run -e py-tox4'
+          - name: tox
+            tox_command: 'run -e py-tox'
         include:
           - os:
               name: Linux
