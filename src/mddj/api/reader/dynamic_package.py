@@ -120,7 +120,7 @@ class DynamicPackageReader(t.Protocol):
 
         content_type = self._read("Description-Content-Type")
         if content_type is None:
-            type_field, *other_fields = "text/x-rst", ()
+            type_field, *other_fields = ("text/x-rst",)
         else:
             type_field, *other_fields = content_type.split(";")
         optional_params = {}

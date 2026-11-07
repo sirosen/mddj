@@ -31,13 +31,11 @@ def read_readme(*, state: CommandState, content: bool) -> None:
             click.echo(readme)
         else:
             keys = sorted(k for k in readme if k != "text")
-            maxlen = max(len(k) for k in keys)
-            for key in keys:
-                click.echo(f"{key.ljust(maxlen)}: {readme[key]}")
+            if keys:
+                fill_width = max(len(k) for k in keys) + 1
+                for key in keys:
+                    prefix = f"{key}:".ljust(fill_width)
+                    click.echo(f"{prefix} {readme[key]}")
             if "text" in readme:
-                body = readme["text"]
-                if "\n" not in body:
-                    click.echo(f"{'text'.ljust(maxlen)}: {readme[key]}")
-                else:
-                    click.echo("text:\n")
-                    click.echo(readme["text"])
+                click.echo("text:\n")
+                click.echo(readme["text"])
