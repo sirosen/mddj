@@ -270,6 +270,22 @@ class Reader(t.Protocol):
         return value
 
     @_cached_methods.cached_method
+    def urls(
+        self, *, normalize: bool = False
+    ) -> types.MappingProxyType[str, str] | None:
+        """
+        Fetch the URLs for the project.
+
+        :param normalized: Normalize the keys in the result, removing punctuation and
+            whitespace and converting to lowercase. If normalization causes conflicts,
+            an error will be raised.
+        """
+        value = self.static.urls(normalize=normalize)
+        if value is None:
+            value = self.dynamic.urls(normalize=normalize)
+        return value
+
+    @_cached_methods.cached_method
     def version(self) -> str:
         """Get the version of the project."""
         value = self.static.version()

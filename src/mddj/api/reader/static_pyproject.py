@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections.abc
 import functools
+import string
 import sys
 import types
 import typing as t
@@ -215,6 +216,35 @@ class StaticPyprojectReader(t.Protocol):
         return types.MappingProxyType(value)
 
     @_cached_methods.cached_method
+    def urls(
+        self, *, normalize: bool = False
+    ) -> types.MappingProxyType[str, str] | None:
+        """
+        Fetch the ``[project.urls]`` table.
+
+        :param normalized: Normalize the keys in the result, removing punctuation and
+            whitespace and converting to lowercase. If normalization causes conflicts,
+            an error will be raised.
+        """
+        value = self._read("urls")
+        if value is None:
+            return None
+        if not _is_str_to_str_mapping(value):
+            raise StaticMetadataMalformed(
+                "Cannot read project.urls because it is not a TOML table with "
+                "string values."
+            )
+        if normalize:
+            normed = {_normalize_url(key): val for key, val in value.items()}
+            if len(normed) != len(value):
+                raise StaticMetadataMalformed(
+                    "Cannot normalize project.urls because two or more keys conflict: "
+                    f"{list(value.keys())!r}"
+                )
+            return types.MappingProxyType(normed)
+        return types.MappingProxyType(value)
+
+    @_cached_methods.cached_method
     def version(self) -> str | None:
         return self._read_string("version")
 
@@ -342,6 +372,14 @@ def _is_well_formed_contact_info_entry(entry: object) -> bool:
     if not all(isinstance(value, str) for value in entry.values()):
         return False
     return True
+
+
+_url_chars_to_remove = string.punctuation + string.whitespace
+_url_removal_map = str.maketrans("", "", _url_chars_to_remove)
+
+
+def _normalize_url(label: str) -> str:
+    return label.translate(_url_removal_map).lower()
 
 
 def _is_str_to_str_mapping(value: object) -> TypeIs[t.Mapping[str, str]]:

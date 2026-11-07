@@ -29,7 +29,7 @@ def test_read_entry_points_pyproject_toml(cli_env: CliEnv) -> None:
             """)
 
 
-def test_read_dependencies_from_setupcfg(cli_env: CliEnv) -> None:
+def test_read_entry_points_from_setupcfg(cli_env: CliEnv) -> None:
     cli_env.setupcfg.write_text(
         d("""\
             [metadata]
