@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import email.utils
 import functools
-import string
 import types
 import typing as t
 
-from ..._internal import _cached_methods, _discovery, _wheel_metadata
+from ..._internal import _cached_methods, _discovery, _normalization, _wheel_metadata
 from .._errors import MDDJError
 
 try:
@@ -168,7 +167,10 @@ class DynamicPackageReader(t.Protocol):
             )
 
         if normalize:
-            normed = {_normalize_url(key): val for key, val in value.items()}
+            normed = {
+                _normalization.normalize_project_url_label(key): val
+                for key, val in value.items()
+            }
             if len(normed) != len(value):
                 raise DynamicMetadataMalformed(
                     "Cannot normalize Project-URLs because two or more keys conflict: "
@@ -274,11 +276,3 @@ def _parse_emails_to_contact_info(emails: str) -> list[dict[str, str]]:
             item["email"] = address
         ret.append(item)
     return ret
-
-
-_url_chars_to_remove = string.punctuation + string.whitespace
-_url_removal_map = str.maketrans("", "", _url_chars_to_remove)
-
-
-def _normalize_url(label: str) -> str:
-    return label.translate(_url_removal_map).lower()

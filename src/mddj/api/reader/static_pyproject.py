@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import collections.abc
 import functools
-import string
 import sys
 import types
 import typing as t
@@ -10,7 +9,13 @@ import typing as t
 import tomlkit
 from packaging.utils import canonicalize_name
 
-from ..._internal import _cached_methods, _cached_toml, _discovery, _types
+from ..._internal import (
+    _cached_methods,
+    _cached_toml,
+    _discovery,
+    _normalization,
+    _types,
+)
 from .._errors import MDDJError
 
 if sys.version_info >= (3, 13):
@@ -235,7 +240,10 @@ class StaticPyprojectReader(t.Protocol):
                 "string values."
             )
         if normalize:
-            normed = {_normalize_url(key): val for key, val in value.items()}
+            normed = {
+                _normalization.normalize_project_url_label(key): val
+                for key, val in value.items()
+            }
             if len(normed) != len(value):
                 raise StaticMetadataMalformed(
                     "Cannot normalize project.urls because two or more keys conflict: "
@@ -372,14 +380,6 @@ def _is_well_formed_contact_info_entry(entry: object) -> bool:
     if not all(isinstance(value, str) for value in entry.values()):
         return False
     return True
-
-
-_url_chars_to_remove = string.punctuation + string.whitespace
-_url_removal_map = str.maketrans("", "", _url_chars_to_remove)
-
-
-def _normalize_url(label: str) -> str:
-    return label.translate(_url_removal_map).lower()
 
 
 def _is_str_to_str_mapping(value: object) -> TypeIs[t.Mapping[str, str]]:
