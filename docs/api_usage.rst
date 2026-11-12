@@ -80,6 +80,9 @@ Readers
 .. autoclass:: mddj.api.reader.dynamic_package.DynamicPackageReader
     :members:
 
+.. autoclass:: mddj.api.reader.LicenseData
+    :members:
+
 .. autoclass:: mddj.api.reader.tox.ToxReader
     :members:
 

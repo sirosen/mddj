@@ -17,6 +17,7 @@ from ..._internal import (
     _types,
 )
 from .._errors import MDDJError
+from ._license_data import LicenseData
 
 if sys.version_info >= (3, 13):
     from typing import TypeIs
@@ -136,6 +137,63 @@ class StaticPyprojectReader(t.Protocol):
     @_cached_methods.cached_method
     def keywords(self) -> tuple[str, ...] | None:
         return self._read_string_array("keywords")
+
+    @_cached_methods.cached_method
+    def license(self) -> LicenseData:
+        """
+        Get the 'license' data.
+
+        This reads `license` and `license-files`, if either (or both) are defined.
+        """
+        license_value = self._read("license")
+        license_files_value: tuple[str, ...] | None = self._read_string_array(
+            "license-files"
+        )
+        if license_value is None:
+            return LicenseData(
+                license_text=None,
+                license_expression=None,
+                license_files=license_files_value,
+            )
+        elif isinstance(license_value, str):
+            return LicenseData(
+                license_text=None,
+                license_expression=license_value,
+                license_files=license_files_value,
+            )
+        elif _is_str_to_str_mapping(license_value):
+            if license_files_value:
+                raise StaticMetadataMalformed(
+                    "project.license-files and project.license legacy format data was "
+                    "populated. These are mutually exclusive."
+                )
+
+            if "file" in license_value and "text" in license_value:
+                raise StaticMetadataMalformed(
+                    "project.license is invalid (in legacy format). "
+                    "'file' and 'text' are mutually exclusive."
+                )
+            elif "file" in license_value:
+                return LicenseData(
+                    license_text=None,
+                    license_expression=None,
+                    license_files=(license_value["file"],),
+                )
+            elif "text" in license_value:
+                return LicenseData(
+                    license_text=license_value["text"],
+                    license_expression=None,
+                    license_files=None,
+                )
+            else:
+                raise StaticMetadataMalformed(
+                    "pyproject.license is invalid. 'file' or 'text' must be present."
+                )
+        else:
+            raise StaticMetadataMalformed(
+                "Cannot read project.license because it is not a TOML table with "
+                "string values or a single string."
+            )
 
     @_cached_methods.cached_method
     def maintainers(self, /) -> tuple[types.MappingProxyType[str, str], ...] | None:

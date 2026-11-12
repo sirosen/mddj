@@ -10,6 +10,7 @@ from .entry_points import read_entry_points
 from .import_names import read_import_names
 from .import_namespaces import read_import_namespaces
 from .keywords import read_keywords
+from .license import read_license
 from .maintainers import read_maintainers
 from .name import read_name
 from .nox import read_nox
@@ -37,6 +38,7 @@ read.add_command(read_entry_points)
 read.add_command(read_import_names)
 read.add_command(read_import_namespaces)
 read.add_command(read_keywords)
+read.add_command(read_license)
 read.add_command(read_maintainers)
 read.add_command(read_name)
 read.add_command(read_optional_dependencies)
