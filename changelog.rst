@@ -11,6 +11,14 @@ Unreleased
   combined with discovery.
 - Removed support for tox version 3.
 - Removed support for Python 3.10.
+- Add remaining core metadata field support to readers:
+  - ``DJ.read.entry_points()`` and ``mddj read entry-points``.
+  - ``DJ.read.readme()`` and ``mddj read readme``.
+  - ``DJ.read.urls()`` and ``mddj read urls``.
+  - ``DJ.read.license()`` and ``mddj read license``.
+- Add basic ``nox`` reader support: ``DJ.read.nox`` and ``mddj read nox``.
+- Add writer support for ``requires-python``: ``DJ.write.requires_python`` and
+  ``mddj write requires-python``.
 
 0.6.0
 -----

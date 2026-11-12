@@ -5,7 +5,14 @@ from mddj._cli.state import CommandState, common_args
 
 @click.command("requires-python")
 @click.argument("REQUIRES_PYTHON")
-@click.option("--verbatim", is_flag=True)
+@click.option(
+    "--verbatim",
+    is_flag=True,
+    help=(
+        "Write an exact expression to the requires-python field. "
+        "By default, the input is treated as a lower bound."
+    ),
+)
 @common_args
 def write_requires_python(
     *, requires_python: str, verbatim: bool, state: CommandState
