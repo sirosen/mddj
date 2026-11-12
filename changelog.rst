@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+0.7.0
+-----
+
 - The constructors for readers, writers, and their configurations are now all
   private. The only public interface for creating these objects is to create a
   ``DJ`` and then access its members.
