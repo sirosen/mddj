@@ -8,6 +8,7 @@ import typing as t
 from ..._internal import _cached_methods
 from . import _config as _reader_config
 from . import _errors
+from ._license_data import LicenseData
 from .dynamic_package import (
     DynamicPackageReader,
     _DynamicpackageReaderImplementation,
@@ -184,6 +185,16 @@ class Reader(t.Protocol):
         if value is None:
             value = self.dynamic.keywords()
         return value
+
+    @_cached_methods.cached_method
+    def license(self) -> LicenseData:
+        """
+        Get the 'license' data.
+        """
+        license_data = self.static.license()
+        if license_data.is_empty:
+            return self.dynamic.license()
+        return license_data
 
     @_cached_methods.cached_method
     def maintainers(self) -> tuple[types.MappingProxyType[str, str], ...]:

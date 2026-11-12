@@ -7,6 +7,7 @@ import typing as t
 
 from ..._internal import _cached_methods, _discovery, _normalization, _wheel_metadata
 from .._errors import MDDJError
+from ._license_data import LicenseData
 
 try:
     import importlib_metadata as _importlib_metadata
@@ -73,6 +74,23 @@ class DynamicPackageReader(t.Protocol):
     @_cached_methods.cached_method
     def keywords(self) -> tuple[str, ...]:
         return self._read_string_array("Keywords", mode="commasep")
+
+    @_cached_methods.cached_method
+    def license(self) -> LicenseData:
+        """
+        Get the 'license' data.
+
+        This reads `License-Expression` and `License-File`, if either (or both) are
+        defined. It also reads the legacy `License` field to get license text.
+        """
+        license_value = self._read("License")
+        license_expression_value = self._read("License-Expression")
+        license_files_value = self._read_string_array("License-File")
+        return LicenseData(
+            license_text=license_value,
+            license_expression=license_expression_value,
+            license_files=license_files_value,
+        )
 
     @_cached_methods.cached_method
     def maintainers(self) -> tuple[types.MappingProxyType[str, str], ...]:
